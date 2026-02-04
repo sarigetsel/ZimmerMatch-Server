@@ -41,11 +41,17 @@ namespace ZimmerMatch.Controllers
         //[Authorize(Roles = "Owner")]
         public async Task<ZimmerDto> Post([FromForm] ZimmerDto zimmer)
         {
-            var imagesPath = Path.Combine(Environment.CurrentDirectory, "images/", zimmer.ImageFiles.FileName);
-            using (FileStream fs = new FileStream(imagesPath, FileMode.Create))
+            foreach(var file in zimmer.ImageFiles)
             {
-                zimmer.ImageFiles.CopyTo(fs);
-                fs.Close();
+                var imagesPath = Path.Combine(
+                    Environment.CurrentDirectory,
+                    "images/", file.FileName
+                );
+               
+                using (var fs = new FileStream(imagesPath, FileMode.Create))
+                {
+                    await file.CopyToAsync(fs);
+                }
             }
             return await service.AddItem(zimmer);
         }
