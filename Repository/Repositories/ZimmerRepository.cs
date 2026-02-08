@@ -47,7 +47,10 @@ namespace Repository.Repositories
             var zi = await ctx.Zimmers.FirstOrDefaultAsync(z => z.ZimmerId == id);
             if (zi == null)
                 return null;
-            zi.OwnerId = zimmer.OwnerId;
+            if (zimmer.OwnerId > 0)
+            {
+                zi.OwnerId = zimmer.OwnerId;
+            }
             zi.NameZimmer = zimmer.NameZimmer;
             zi.Description = zimmer.Description;
             zi.City = zimmer.City; 
@@ -56,10 +59,9 @@ namespace Repository.Repositories
             zi.Longitude = zimmer.Longitude; 
             zi.NumRooms = zimmer.NumRooms; 
             zi.PricePerNight = zimmer.PricePerNight;
-            zi.CreatedAt = zimmer.CreatedAt;
             zi.Facilities = zimmer.Facilities;
-            zi.Owner = zimmer.Owner;
-            zi.ImageUrls = zimmer.ImageUrls !=null ? new List<string>(zimmer.ImageUrls) : new List<string>();
+            if(zimmer.ImageUrls != null && zimmer.ImageUrls.Any())
+                zi.ImageUrls = new List<string>(zimmer.ImageUrls);
             await ctx.Save();
             return zi;
         }

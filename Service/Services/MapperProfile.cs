@@ -16,12 +16,17 @@ namespace Service.Services
 
         public MapperProfile()
         {
-            CreateMap<Zimmer, ZimmerDto>()
-                .ForMember(dest => dest.ArrImages,
-                 o => o.MapFrom(src => src.ImageUrls.Select(file => File.ReadAllBytes(path + file)).ToList()));
+
+             CreateMap<Zimmer, ZimmerDto>()
+             .ForMember(dest => dest.ArrImages,
+            o => o.MapFrom(src => src.ImageUrls.Select(fileName => File.ReadAllBytes(Path.Combine(path, fileName))).ToList()));
+
             CreateMap<ZimmerDto, Zimmer>()
                 .ForMember(dest => dest.ImageUrls,
                  o => o.MapFrom(src => src.ImageFiles.Select(f => f.FileName).ToList()));
+
+            CreateMap<User, UserDto>().ReverseMap();
+            CreateMap<Availability,AvailabilityDto>().ReverseMap();
         }
         public byte[] myconvert(string url)
         {

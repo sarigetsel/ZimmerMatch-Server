@@ -6,24 +6,25 @@ using System.Threading.Tasks;
 
 namespace Common.Enums
 {
+        [Flags]
         public enum Facility
         {
-            Pool,               // בריכה
-            Parking,            // חניה
-            Garden,             // חצר
-            Wifi,               // אינטרנט אלחוטי
-            Jacuzzi,            // ג'קוזי
-            Accessible,         // נגישות
-            AirConditioning,    // מיזוג אוויר
-            BBQ,                // עמדת על האש
-            Kitchen,            // מטבח מאובזר
-            Heating,            // חימום
-            Playground,         // משחקיה לילדים
-            Seaview,            // נוף לים (אם קיים)
-            PrivateParking,     // חניה פרטית
-            BreakfastIncluded,  // כולל ארוחת בוקר
-            OutdoorSeating,     // פינת ישיבה חיצונית
-            Laundry             // מכונת כביסה
+            Pool = 1,               // בריכה
+            Parking = 2,            // חניה
+            Garden = 4,             // חצר
+            Wifi = 8,               // אינטרנט אלחוטי
+            Jacuzzi = 16,            // ג'קוזי
+            Accessible = 32,         // נגישות
+            AirConditioning = 64,    // מיזוג אוויר
+            BBQ = 128,                // עמדת על האש
+            Kitchen = 256,            // מטבח מאובזר
+            Heating = 512,            // חימום
+            Playground = 1024,         // משחקיה לילדים
+            Seaview = 2048,            // נוף לים (אם קיים)
+            PrivateParking = 4096,     // חניה פרטית
+            BreakfastIncluded = 8192,  // כולל ארוחת בוקר
+            OutdoorSeating = 16384,     // פינת ישיבה חיצונית
+            Laundry = 32768             // מכונת כביסה
         }
     
 }

@@ -16,7 +16,7 @@ namespace Repository.Entities
         public int NumRooms { get; set; }
         public decimal PricePerNight { get; set; }
         public DateTime CreatedAt { get; set; } // תאריך הוספה למערכת
-        public List<Facility> Facilities { get; set; } = new();
+        public Facility Facilities { get; set; } = new();
 
         [ForeignKey("OwnerId")]
         public User Owner { get; set; }

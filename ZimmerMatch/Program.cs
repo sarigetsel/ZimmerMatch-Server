@@ -15,11 +15,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+//builder.Services.AddServices();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// סווגר-אבטחה
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "securityLessonWebApi", Version = "v1" });
@@ -46,8 +46,6 @@ builder.Services.AddSwaggerGen(c =>
                 }
             });
 });
-
-
 // אימות
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(option =>
@@ -63,9 +61,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 var connection = builder.Configuration.GetConnectionString("database-work");
-builder.Services.AddSingleton<IContext>(new ZimmerDbContext(connection));// לבדוק אם זה טוב לעשות ככה כי gpt אמר שלא
+builder.Services.AddSingleton<IContext>(new ZimmerDbContext(connection));
 builder.Services.AddAutoMapper(typeof(MapperProfile));
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddServices();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();

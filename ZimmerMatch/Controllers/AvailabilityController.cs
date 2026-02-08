@@ -36,7 +36,7 @@ namespace ZimmerMatch.Controllers
         }
 
         [HttpPost]
-        public async Task<AvailabilityDto> Post(AvailabilityDto availability)
+        public async Task<AvailabilityDto> Post([FromBody] AvailabilityDto availability)
         {
             return await service.AddItem(availability);
         }

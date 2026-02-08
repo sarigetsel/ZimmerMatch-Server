@@ -19,7 +19,7 @@ namespace ZimmerMatch.Controllers
     {
         private IConfiguration _configuration;
         private readonly IService<UserDto> service;
-        private readonly IsExist<UserDto> isExist;
+        private readonly IsExist< UserDto> isExist;
 
         public UserController(IConfiguration configuration, IService<UserDto> service, IsExist<UserDto> isExist)
         {
@@ -27,16 +27,15 @@ namespace ZimmerMatch.Controllers
             this.service = service;
             this.isExist = isExist;
         }
-        [HttpPost("login")]
-       
-         public string Login([FromBody] Login l)
-         {
-            UserDto u = isExist.Exist(l);
-            if (u != null)
-                return GenerateToken(u);
-            return "user dosent exist..";
-        }
 
+        [HttpPost("login")]
+         public async Task<string> Login([FromBody] Login l)
+         {
+            var user = await isExist.Exist(l);
+             if (user != null)
+                  return GenerateToken(user);
+             return "user dosent exist..";
+         }
 
         [HttpGet]
         public async Task<List<UserDto>> Get()
@@ -51,7 +50,7 @@ namespace ZimmerMatch.Controllers
         }
 
         [HttpPost]
-        public async Task<UserDto> Post(UserDto user)
+        public async Task<UserDto> Post([FromBody] UserDto user)
         {
             return await service.AddItem(user);
         }
@@ -75,7 +74,7 @@ namespace ZimmerMatch.Controllers
 
             var claims = new[]
             {
-                new Claim(ClaimTypes.Name,u.Name),
+                new Claim(ClaimTypes.Name, u.Name),
                 new Claim(ClaimTypes.Role,u.Role.ToString())
             };
             var token = new JwtSecurityToken(

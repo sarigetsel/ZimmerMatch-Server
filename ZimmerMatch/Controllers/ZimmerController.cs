@@ -38,33 +38,40 @@ namespace ZimmerMatch.Controllers
         [HttpPost]
 
         // הרשאת גישה רק לבעל הצימר
-        //[Authorize(Roles = "Owner")]
+        [Authorize(Roles = "Owner")]
         public async Task<ZimmerDto> Post([FromForm] ZimmerDto zimmer)
         {
-            foreach(var file in zimmer.ImageFiles)
+            var imagesDir = Path.Combine(Environment.CurrentDirectory, "images");
+
+            if (!Directory.Exists(imagesDir))
             {
-                var imagesPath = Path.Combine(
-                    Environment.CurrentDirectory,
-                    "images/", file.FileName
-                );
-               
+                Directory.CreateDirectory(imagesDir);
+            }
+            
+            foreach (var file in zimmer.ImageFiles)
+            {
+                var imagesPath = Path.Combine(imagesDir, file.FileName);
                 using (var fs = new FileStream(imagesPath, FileMode.Create))
                 {
                     await file.CopyToAsync(fs);
                 }
+
+                using var ms = new MemoryStream();
+                await file.CopyToAsync(ms);
+                zimmer.ArrImages.Add(ms.ToArray());
             }
             return await service.AddItem(zimmer);
         }
 
         [HttpPut("{id}")]
-        //[Authorize(Roles = "Owner")]
+        [Authorize(Roles = "Owner")]
         public async Task<ZimmerDto> Put(int id,[FromForm] ZimmerDto zimmer)
         {
             return await service.UpdateItem(id,zimmer);
         }
 
         [HttpDelete("{id}")]
-        //[Authorize(Roles = "Owner")]
+        [Authorize(Roles = "Owner")]
         public async Task Delete(int id)
         {
              await service.DeleteItem(id);

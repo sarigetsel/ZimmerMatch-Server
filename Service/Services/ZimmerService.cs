@@ -25,7 +25,7 @@ namespace Service.Services
         public async Task<ZimmerDto> AddItem(ZimmerDto zimmerDto)
         {
             var created = await repository.AddItem(mapper.Map<Zimmer>(zimmerDto));
-            return mapper.Map<ZimmerDto>(created);
+            return mapper.Map<Zimmer,ZimmerDto>(created);
         }
 
         public async Task DeleteItem(int id)

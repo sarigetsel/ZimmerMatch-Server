@@ -11,7 +11,7 @@ using Service.Interfaces;
 
 namespace Service.Services
 {
-    public class UserService:IService<UserDto>
+    public class UserService:IService<UserDto>,IsExist<UserDto>
     {
         private readonly IRepository<User> repository;
         private readonly IMapper mapper;
@@ -33,6 +33,9 @@ namespace Service.Services
             await repository.DeleteItem(id);
         }
 
+       
+      
+
         public async Task<List<UserDto>> GetAll()
         {
             var users = await repository.GetAll();
@@ -50,13 +53,14 @@ namespace Service.Services
             var updateUser = await repository.UpdateItem(id, mapper.Map<User>(userDto));
             return mapper.Map<UserDto>(updateUser);
         }
-        public async Task<UserDto?> Exist(Login login)
+        public async Task<UserDto> Exist(Login l)
         {
-            var user = (await repository.GetAll()).FirstOrDefault(u => u.Email == login.Email && u.Password == login.Password);
+            var user = (await repository.GetAll()).FirstOrDefault(u => u.Email == l.Email && u.Password == l.Password);
             if (user != null)
                 return mapper.Map<UserDto>(user);
             return null;
         }
+
     }
 }
 

@@ -24,7 +24,7 @@ namespace ZimmerMatch
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-
+            //optionsBuilder.UseSqlServer("server=DESKTOP-1VUANBN;database=ZimmerDbContext1;trusted_connection=true;TrustServerCertificate=True");
             optionsBuilder.UseSqlServer(_connection);
         }
 

@@ -48,11 +48,11 @@ namespace Repository.Repositories
             var av = await ctx.Availabilities.FirstOrDefaultAsync(a => a.AvailabilityId == id);
             if (av == null)
                 return null;
+
             av.ZimmerId = availability.ZimmerId;
-            av.StartDate = availability.StartDate;
             av.EndTime = availability.EndTime;
             av.IsBooked = availability.IsBooked;
-            av.Zimmers = availability.Zimmers;
+
             await ctx.Save();
             return av;
         }

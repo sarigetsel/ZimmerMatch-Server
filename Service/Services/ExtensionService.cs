@@ -17,8 +17,9 @@ namespace Service.Services
             services.AddRepository();
             services.AddScoped<IService<AvailabilityDto>, AvailabilityService>();
             services.AddScoped<IService<UserDto>,UserService>();
+            services.AddScoped<IsExist<UserDto>, UserService>();
             services.AddScoped<IService<ZimmerDto>,ZimmerService>();
-            // להוסיף פה גם את ה isExist למחלקה שצריכה
+           
             return services;
         }
     }

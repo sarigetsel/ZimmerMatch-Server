@@ -34,6 +34,7 @@ namespace Repository.Repositories
 
         public async Task<List<User>> GetAll()
         {
+           var x= ctx.Users.ToList();
             return await ctx.Users.ToListAsync();
         }
 

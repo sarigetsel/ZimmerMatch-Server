@@ -5,13 +5,16 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+          
+
 
 namespace Common.Dto
 {
     public class ZimmerDto
     {
-        public object ImageUrls;
+        
 
         public int ZimmerId { get; set; }
         public int OwnerId { get; set; }
@@ -29,11 +32,13 @@ namespace Common.Dto
         public decimal PricePerNight { get; set; }
 
         public DateTime CreatedAt { get; set; }
+        
+        public Facility Facilities { get; set; } 
 
-        public List<Facility> Facilities { get; set; } = new();
+        public List<IFormFile> ImageFiles { get; set; }
 
-        public List<IFormFile> ImageFiles { get; set; } = new();
-        public List<byte[]> ArrImages { get; set; } = new();
+        public List<byte[]>? ArrImages { get; set; }
+
 
     }
 
