@@ -50,9 +50,15 @@ namespace ZimmerMatch.Controllers
         }
 
         [HttpPost]
-        public async Task<UserDto> Post([FromBody] UserDto user)
+        public async Task<IActionResult> Post([FromBody] UserDto user)
         {
-            return await service.AddItem(user);
+            var users = await service.GetAll();
+
+            if(users.Any(u=>u.Email == user.Email))
+                return BadRequest("user already exists..");
+
+            var newUser = await service.AddItem(user);
+            return Ok(newUser);
         }
 
         [HttpPut("{id}")]

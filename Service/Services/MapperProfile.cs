@@ -19,7 +19,7 @@ namespace Service.Services
 
              CreateMap<Zimmer, ZimmerDto>()
              .ForMember(dest => dest.ArrImages,
-            o => o.MapFrom(src => src.ImageUrls.Select(fileName => File.ReadAllBytes(Path.Combine(path, fileName))).ToList()));
+              o => o.MapFrom(src => src.ImageUrls.Select(fileName => File.ReadAllBytes(Path.Combine(path, fileName))).ToList()));
 
             CreateMap<ZimmerDto, Zimmer>()
                 .ForMember(dest => dest.ImageUrls,
