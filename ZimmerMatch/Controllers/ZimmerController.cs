@@ -16,65 +16,118 @@ namespace ZimmerMatch.Controllers
     [ApiController]
     public class ZimmerController:ControllerBase
     {
-        private readonly IService<ZimmerDto> service;
+        private readonly IService<ZimmerDto> _service;
 
         public ZimmerController(IService<ZimmerDto> service)
         {
-            this.service = service;
+            _service = service;
         }
 
         [HttpGet]
-        public async Task<List<ZimmerDto>> Get()
+        public async Task<IActionResult> Get()
         {
-            return await service.GetAll();
+            try
+            {
+                var zimmers = await _service.GetAll();
+                return Ok(zimmers);
+            }
+            catch
+            {
+                return StatusCode(500, "Failed to retrieve zimmers.");
+            }
         }
 
         [HttpGet("{id}")]
-        public async Task<ZimmerDto> Get(int id)
+        public async Task<IActionResult> Get(int id)
         {
-            return await service.GetById(id);
+            try
+            {
+                var zimmer = await _service.GetById(id);
+                if (zimmer == null)
+                    return NotFound();
+
+                return Ok(zimmer);
+            }
+            catch
+            {
+                return StatusCode(500, "Failed to retrieve zimmer.");
+            }
         }
 
         [HttpPost]
 
         // הרשאת גישה רק לבעל הצימר
         [Authorize(Roles = "Owner")]
-        public async Task<ZimmerDto> Post([FromForm] ZimmerDto zimmer)
+        public async Task<IActionResult> Post([FromForm] ZimmerDto zimmer)
         {
-            var imagesDir = Path.Combine(Environment.CurrentDirectory, "images");
+            if (zimmer == null || !ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            if (!Directory.Exists(imagesDir))
+            try
             {
-                Directory.CreateDirectory(imagesDir);
-            }
-            
-            foreach (var file in zimmer.ImageFiles)
-            {
-                var imagesPath = Path.Combine(imagesDir, file.FileName);
-                using (var fs = new FileStream(imagesPath, FileMode.Create))
+                var imagesDir = Path.Combine(Environment.CurrentDirectory, "images");
+                if (!Directory.Exists(imagesDir))
+                    Directory.CreateDirectory(imagesDir);
+
+                zimmer.ArrImages = new List<byte[]>();
+
+                foreach (var file in zimmer.ImageFiles)
                 {
-                    await file.CopyToAsync(fs);
+                    if (file.Length == 0)
+                        continue;
+
+                    var imagesPath = Path.Combine(imagesDir, file.FileName);
+                    using (var fs = new FileStream(imagesPath, FileMode.Create))
+                        await file.CopyToAsync(fs);
+
+                    using var ms = new MemoryStream();
+                    await file.CopyToAsync(ms);
+                    zimmer.ArrImages.Add(ms.ToArray());
                 }
 
-                using var ms = new MemoryStream();
-                await file.CopyToAsync(ms);
-                zimmer.ArrImages.Add(ms.ToArray());
+                var newZimmer = await _service.AddItem(zimmer);
+                return Ok(newZimmer);
             }
-            return await service.AddItem(zimmer);
+            catch
+            {
+                return StatusCode(500, "Failed to create zimmer.");
+            }
         }
 
         [HttpPut("{id}")]
         [Authorize(Roles = "Owner")]
-        public async Task<ZimmerDto> Put(int id,[FromForm] ZimmerDto zimmer)
+        public async Task<IActionResult> Put(int id,[FromForm] ZimmerDto zimmer)
         {
-            return await service.UpdateItem(id,zimmer);
+            if (zimmer == null || !ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var updatedZimmer = await _service.UpdateItem(id, zimmer);
+                if (updatedZimmer == null)
+                    return NotFound();
+
+                return Ok(updatedZimmer);
+            }
+            catch
+            {
+                return StatusCode(500, "Failed to update zimmer.");
+            }
         }
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Owner")]
-        public async Task Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-             await service.DeleteItem(id);
+            try
+            {
+                await _service.DeleteItem(id);
+                return NoContent();
+            }
+            catch
+            {
+                return StatusCode(500, "Failed to delete zimmer.");
+            }
         }
     }
 }

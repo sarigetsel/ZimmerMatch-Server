@@ -13,6 +13,9 @@ namespace ZimmerMatch
         {
             _connection = connectionString;
         }
+        //public ZimmerDbContext(DbContextOptions<ZimmerDbContext> options) : base(options)
+        //{
+        //}
         public virtual DbSet<User> Users { get; set; }
 
         public virtual DbSet<Zimmer> Zimmers { get; set; }
@@ -24,7 +27,7 @@ namespace ZimmerMatch
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            //optionsBuilder.UseSqlServer("server=DESKTOP-1VUANBN;database=ZimmerDbContext1;trusted_connection=true;TrustServerCertificate=True");
+            optionsBuilder.UseSqlServer("server=DESKTOP-1VUANBN;database=ZimmerDbContext1;trusted_connection=true;TrustServerCertificate=True");
             optionsBuilder.UseSqlServer(_connection);
         }
 

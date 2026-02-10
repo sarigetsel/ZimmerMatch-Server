@@ -16,41 +16,96 @@ namespace ZimmerMatch.Controllers
     [ApiController]
     public class AvailabilityController : ControllerBase
     {
-        private readonly IService<AvailabilityDto> service;
+        private readonly IService<AvailabilityDto> _service;
 
         public AvailabilityController(IService<AvailabilityDto> service)
         {
-            this.service = service;
+            _service = service;
         }
 
         [HttpGet]
-        public async Task<List<AvailabilityDto>> Get()
+        public async Task<IActionResult> Get()
         {
-            return await service.GetAll();
+            try
+            {
+                var availabilities = await _service.GetAll();
+                return Ok(availabilities);
+            }
+            catch
+            {
+                return StatusCode(500, "Failed to retrieve availabilities.");
+            }
         }
 
         [HttpGet("{id}")]
-        public async Task<AvailabilityDto> Get(int id)
+        public async Task<IActionResult> Get(int id)
         {
-            return await service.GetById(id);
+            try
+            {
+                var availability = await _service.GetById(id);
+                if (availability == null)
+                    return NotFound();
+
+                return Ok(availability);
+            }
+            catch
+            {
+                return StatusCode(500, "Failed to retrieve availability.");
+            }
         }
 
         [HttpPost]
-        public async Task<AvailabilityDto> Post([FromBody] AvailabilityDto availability)
+        [Authorize(Roles = "Owner")]
+        public async Task<IActionResult> Post([FromBody] AvailabilityDto availability)
         {
-            return await service.AddItem(availability);
+            if (availability == null || !ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var newAvailability = await _service.AddItem(availability);
+                return Ok(newAvailability);
+            }
+            catch
+            {
+                return StatusCode(500, "Failed to create availability.");
+            }
         }
 
         [HttpPut("{id}")]
-        public async Task<AvailabilityDto> Put(int id,[FromBody] AvailabilityDto availability)
+        [Authorize(Roles = "Owner")]
+        public async Task<IActionResult> Put(int id,[FromBody] AvailabilityDto availability)
         {
-            return await service.UpdateItem(id, availability);
+            if (availability == null || !ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var updatedAvailability = await _service.UpdateItem(id, availability);
+                if (updatedAvailability == null)
+                    return NotFound();
+
+                return Ok(updatedAvailability);
+            }
+            catch
+            {
+                return StatusCode(500, "Failed to update availability.");
+            }
         }
 
         [HttpDelete("{id}")]
-        public async Task Delete(int id)
+        [Authorize(Roles = "Owner")]
+        public async Task<IActionResult> Delete(int id)
         {
-            await service.DeleteItem(id);
+            try
+            {
+                await _service.DeleteItem(id);
+                return NoContent();
+            }
+            catch
+            {
+                return StatusCode(500, "Failed to delete availability.");
+            }
         }
     }
 }

@@ -10,6 +10,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Common.Enums;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace ZimmerMatch.Controllers
 {
@@ -18,60 +19,126 @@ namespace ZimmerMatch.Controllers
     public class UserController : ControllerBase
     {
         private IConfiguration _configuration;
-        private readonly IService<UserDto> service;
-        private readonly IsExist< UserDto> isExist;
+        private readonly IService<UserDto> _service;
+        private readonly IsExist< UserDto> _isExist;
 
         public UserController(IConfiguration configuration, IService<UserDto> service, IsExist<UserDto> isExist)
         {
             _configuration = configuration;
-            this.service = service;
-            this.isExist = isExist;
+            _service = service;
+            _isExist = isExist;
         }
 
         [HttpPost("login")]
-         public async Task<string> Login([FromBody] Login l)
+         public async Task<IActionResult> Login([FromBody] Login l)
          {
-            var user = await isExist.Exist(l);
-             if (user != null)
-                  return GenerateToken(user);
-             return "user dosent exist..";
+            if(l == null || string.IsNullOrWhiteSpace(l.Email) || string.IsNullOrWhiteSpace(l.Password))
+                return BadRequest("Email and password are required.");
+
+            try
+            {
+                var user = await _isExist.Exist(l);
+                if (user != null)
+                     return Ok(new { Token = GenerateToken(user) });
+
+                return NotFound("User doesnt exist.");
+            }
+            catch
+            {
+                return StatusCode(500, "An unexpected error occurred during login.");
+            }
          }
 
         [HttpGet]
-        public async Task<List<UserDto>> Get()
+        public async Task<IActionResult> Get()
         {
-            return await service.GetAll();
+            try
+            {
+                var users = await _service.GetAll();
+                users.ForEach(u => u.Password = null);
+                return Ok(users);
+            }
+            catch
+            {
+                return StatusCode(500, "Failed to retrieve users.");
+            }
         }
 
         [HttpGet("{id}")]
-        public async Task<UserDto> Get(int id)
+        public async Task<IActionResult> Get(int id)
         {
-            return await service.GetById(id);
-        }
+            try
+            {
+                var currentUser = GetCurrentUser();
+                if (currentUser == null || currentUser.Id != id)
+                    return Forbid();
 
+                var user = await _service.GetById(id);
+                if (user == null)
+                    return NotFound();
+
+                user.Password = null; // Hide password
+                return Ok(user);
+            }
+            catch
+            {
+                return StatusCode(500, "Failed to retrieve user.");
+            }
+        }
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] UserDto user)
         {
-            var users = await service.GetAll();
+            if (user == null || !ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            if(users.Any(u=>u.Email == user.Email))
-                return BadRequest("user already exists..");
+            try
+            {
+                var exists = (await _service.GetAll()).Any(u => u.Email == user.Email);
+                if (exists)
+                    return BadRequest("User already exists.");
 
-            var newUser = await service.AddItem(user);
-            return Ok(newUser);
+                var newUser = await _service.AddItem(user);
+                var token = GenerateToken(newUser);
+
+                return Ok(new { User = newUser, Token = token });
+            }
+            catch
+            {
+                return StatusCode(500, "Failed to create user.");
+            }
         }
 
         [HttpPut("{id}")]
-        public async Task<UserDto> Put(int id,[FromBody] UserDto user)
+        public async Task<IActionResult> Put(int id, [FromBody] UserDto user)
         {
-            return await service.UpdateItem(id,user);
+            if (user == null || !ModelState.IsValid)
+                return BadRequest(ModelState);
+            try
+            {
+                var updatedUser = await _service.UpdateItem(id, user);
+                updatedUser.Password = null;
+                return Ok(updatedUser);
+            }
+            catch
+            {
+                return StatusCode(500, "Failed to update user.");
+            }
         }
 
         [HttpDelete("{id}")]
-        public async Task Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            await service.DeleteItem(id);
+            try
+            {
+                await _service.DeleteItem(id);
+                return NoContent();
+            }
+            catch
+            {
+                return StatusCode(500, "Failed to delete user.");
+            }
         }
+
 
         private string GenerateToken(UserDto u)
         {
@@ -81,7 +148,8 @@ namespace ZimmerMatch.Controllers
             var claims = new[]
             {
                 new Claim(ClaimTypes.Name, u.Name),
-                new Claim(ClaimTypes.Role,u.Role.ToString())
+                new Claim(ClaimTypes.Role,u.Role.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, u.Id.ToString())
             };
             var token = new JwtSecurityToken(
                 _configuration["Jwt:Issuer"],
@@ -98,6 +166,7 @@ namespace ZimmerMatch.Controllers
 
             return new UserDto()
             {
+                Id = int.Parse(identity.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0"),
                 Name = identity.FindFirst(ClaimTypes.Name)?.Value,
                 Role = Enum.Parse<UserRole>(identity.FindFirst(ClaimTypes.Role)?.Value)
             };
