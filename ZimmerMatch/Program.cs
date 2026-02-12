@@ -11,14 +11,17 @@ using Service.Interfaces;
 using Service.Services;
 using System.Text;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-//builder.Services.AddServices();
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+
 
 builder.Services.AddSwaggerGen(c =>
 {
@@ -59,15 +62,36 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
     });
-
 var connection = builder.Configuration.GetConnectionString("database-work");
-builder.Services.AddSingleton<IContext>(new ZimmerDbContext(connection));
+//builder.Services.AddSingleton<IContext>(new ZimmerDbContext(connection));
+builder.Services.AddDbContext<ZimmerDbContext>(options =>
+    options.UseSqlServer(connection));
+builder.Services.AddScoped<IContext>(provider => provider.GetRequiredService<ZimmerDbContext>());
+
+
 builder.Services.AddAutoMapper(typeof(MapperProfile));
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddServices();
 builder.Services.AddOpenApi();
 
+//builder.Services.AddScoped<IContext, ZimmerDbContext>();
 var app = builder.Build();
+
+//using (var scope = app.Services.CreateScope())
+//{
+//    try
+//    {
+//        var context = scope.ServiceProvider.GetRequiredService<ZimmerDbContext>();
+//        ZimmerSeederFull.Seed(context);
+//        Console.WriteLine("Seeder executed successfully.");
+//    }
+//    catch (Exception ex)
+//    {
+//       Console.WriteLine("Seeder failed: " + ex.Message);
+//    }
+//}
+
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -85,3 +109,5 @@ app.UseAuthorization(); // אימות
 app.MapControllers();
 
 app.Run();
+
+

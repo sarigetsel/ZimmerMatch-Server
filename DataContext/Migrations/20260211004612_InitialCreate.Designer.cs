@@ -9,23 +9,23 @@ using ZimmerMatch;
 
 #nullable disable
 
-namespace ZimmerMatch.Migrations
+namespace DataContext.Migrations
 {
     [DbContext(typeof(ZimmerDbContext))]
-    [Migration("20251212084145_init")]
-    partial class init
+    [Migration("20260211004612_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.11")
+                .HasAnnotation("ProductVersion", "9.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("ZimmerMatch.Availability", b =>
+            modelBuilder.Entity("Repository.Entities.Availability", b =>
                 {
                     b.Property<int>("AvailabilityId")
                         .ValueGeneratedOnAdd()
@@ -42,20 +42,61 @@ namespace ZimmerMatch.Migrations
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("ZiimerId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ZimmersZimmerId")
+                    b.Property<int>("ZimmerId")
                         .HasColumnType("int");
 
                     b.HasKey("AvailabilityId");
 
-                    b.HasIndex("ZimmersZimmerId");
+                    b.HasIndex("ZimmerId");
 
                     b.ToTable("Availabilities");
                 });
 
-            modelBuilder.Entity("ZimmerMatch.User", b =>
+            modelBuilder.Entity("Repository.Entities.Booking", b =>
+                {
+                    b.Property<int>("BookingId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BookingId"));
+
+                    b.Property<DateTime>("BookingDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("NumGuests")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SpecialRequests")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ZimmerId")
+                        .HasColumnType("int");
+
+                    b.HasKey("BookingId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("ZimmerId");
+
+                    b.ToTable("Bookings");
+                });
+
+            modelBuilder.Entity("Repository.Entities.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -79,16 +120,15 @@ namespace ZimmerMatch.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Role")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("ZimmerMatch.Zimmer", b =>
+            modelBuilder.Entity("Repository.Entities.Zimmer", b =>
                 {
                     b.Property<int>("ZimmerId")
                         .ValueGeneratedOnAdd()
@@ -111,9 +151,8 @@ namespace ZimmerMatch.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.PrimitiveCollection<string>("Facilities")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Facilities")
+                        .HasColumnType("int");
 
                     b.PrimitiveCollection<string>("ImageUrls")
                         .IsRequired()
@@ -124,9 +163,6 @@ namespace ZimmerMatch.Migrations
 
                     b.Property<double>("Longitude")
                         .HasColumnType("float");
-
-                    b.Property<int>("MyProperty")
-                        .HasColumnType("int");
 
                     b.Property<string>("NameZimmer")
                         .IsRequired()
@@ -148,20 +184,39 @@ namespace ZimmerMatch.Migrations
                     b.ToTable("Zimmers");
                 });
 
-            modelBuilder.Entity("ZimmerMatch.Availability", b =>
+            modelBuilder.Entity("Repository.Entities.Availability", b =>
                 {
-                    b.HasOne("ZimmerMatch.Zimmer", "Zimmers")
+                    b.HasOne("Repository.Entities.Zimmer", "Zimmers")
                         .WithMany("Availabilities")
-                        .HasForeignKey("ZimmersZimmerId")
+                        .HasForeignKey("ZimmerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Zimmers");
                 });
 
-            modelBuilder.Entity("ZimmerMatch.Zimmer", b =>
+            modelBuilder.Entity("Repository.Entities.Booking", b =>
                 {
-                    b.HasOne("ZimmerMatch.User", "Owner")
+                    b.HasOne("Repository.Entities.User", "User")
+                        .WithMany("Bookings")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Repository.Entities.Zimmer", "Zimmer")
+                        .WithMany("Bookings")
+                        .HasForeignKey("ZimmerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+
+                    b.Navigation("Zimmer");
+                });
+
+            modelBuilder.Entity("Repository.Entities.Zimmer", b =>
+                {
+                    b.HasOne("Repository.Entities.User", "Owner")
                         .WithMany("Zimmers")
                         .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -170,14 +225,18 @@ namespace ZimmerMatch.Migrations
                     b.Navigation("Owner");
                 });
 
-            modelBuilder.Entity("ZimmerMatch.User", b =>
+            modelBuilder.Entity("Repository.Entities.User", b =>
                 {
+                    b.Navigation("Bookings");
+
                     b.Navigation("Zimmers");
                 });
 
-            modelBuilder.Entity("ZimmerMatch.Zimmer", b =>
+            modelBuilder.Entity("Repository.Entities.Zimmer", b =>
                 {
                     b.Navigation("Availabilities");
+
+                    b.Navigation("Bookings");
                 });
 #pragma warning restore 612, 618
         }

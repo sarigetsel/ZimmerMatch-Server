@@ -30,8 +30,9 @@ namespace ZimmerMatch.Controllers
         }
 
         [HttpPost("login")]
-         public async Task<IActionResult> Login([FromBody] Login l)
-         {
+        [AllowAnonymous]
+        public async Task<IActionResult> Login([FromBody] Login l)
+        {
             if(l == null || string.IsNullOrWhiteSpace(l.Email) || string.IsNullOrWhiteSpace(l.Password))
                 return BadRequest("Email and password are required.");
 
@@ -50,6 +51,7 @@ namespace ZimmerMatch.Controllers
          }
 
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Get()
         {
             try
@@ -85,8 +87,9 @@ namespace ZimmerMatch.Controllers
                 return StatusCode(500, "Failed to retrieve user.");
             }
         }
-        [HttpPost]
-        public async Task<IActionResult> Post([FromBody] UserDto user)
+        [HttpPost("register")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Register([FromBody] UserDto user)
         {
             if (user == null || !ModelState.IsValid)
                 return BadRequest(ModelState);

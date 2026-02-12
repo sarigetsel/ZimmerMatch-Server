@@ -57,7 +57,7 @@ namespace ZimmerMatch.Controllers
         [HttpPost]
 
         // הרשאת גישה רק לבעל הצימר
-        [Authorize(Roles = "Owner")]
+        [Authorize(Roles = "Owner,Admin")]
         public async Task<IActionResult> Post([FromForm] ZimmerDto zimmer)
         {
             if (zimmer == null || !ModelState.IsValid)
@@ -116,7 +116,7 @@ namespace ZimmerMatch.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Owner")]
+        [Authorize(Roles = "Owner,Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             try

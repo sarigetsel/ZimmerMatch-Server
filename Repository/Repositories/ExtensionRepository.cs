@@ -17,6 +17,7 @@ namespace Service.Services
             services.AddScoped<IRepository<Availability>, AvailabilityRepository>();
             services.AddScoped<IRepository<User>, UserRepository>();
             services.AddScoped<IRepository<Zimmer>, ZimmerRepository>();
+            services.AddScoped<IRepository<Booking>, BookingRepository>();
             return services;
         }
     }

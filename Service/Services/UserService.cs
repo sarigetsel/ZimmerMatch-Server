@@ -1,20 +1,22 @@
-﻿using System;
+﻿using AutoMapper;
+using Common.Dto;
+using Microsoft.AspNetCore.Identity;
+using Repository.Entities;
+using Repository.Interfaces;
+using Service.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AutoMapper;
-using Common.Dto;
-using Repository.Entities;
-using Repository.Interfaces;
-using Service.Interfaces;
 
 namespace Service.Services
 {
-    public class UserService:IService<UserDto>,IsExist<UserDto>
+    public class UserService: IService<UserDto>, IsExist<UserDto>
     {
         private readonly IRepository<User> repository;
         private readonly IMapper mapper;
+        private readonly PasswordHasher<User> _passwordHasher = new();
 
         public UserService(IRepository<User> repository, IMapper map)
         {
@@ -24,7 +26,10 @@ namespace Service.Services
 
         public async Task<UserDto> AddItem(UserDto userDto)
         {
-            var created = await repository.AddItem(mapper.Map<User>(userDto));
+            var user = mapper.Map<User>(userDto);
+            user.Password = _passwordHasher.HashPassword(user, user.Password);
+
+            var created = await repository.AddItem(user);
             return mapper.Map<UserDto>(created);
         }
 
@@ -33,34 +38,56 @@ namespace Service.Services
             await repository.DeleteItem(id);
         }
 
-       
-      
-
         public async Task<List<UserDto>> GetAll()
         {
             var users = await repository.GetAll();
-            return mapper.Map<List<UserDto>>(users);
+            var userDto = mapper.Map<List<UserDto>>(users);
+            foreach (var user in userDto)
+            {
+                user.Password = null;
+            }
+            return userDto;
         }
 
         public async Task<UserDto> GetById(int id)
         {
             var user = await repository.GetById(id);
-            return mapper.Map<UserDto>(user);
+            var userDto = mapper.Map<UserDto>(user);
+            userDto.Password = null;
+            return userDto;
         }
 
         public async Task<UserDto> UpdateItem(int id, UserDto userDto)
         {
-            var updateUser = await repository.UpdateItem(id, mapper.Map<User>(userDto));
-            return mapper.Map<UserDto>(updateUser);
+            var userEntity = mapper.Map<User>(userDto);
+            if (!string.IsNullOrEmpty(userEntity.Password))
+            {
+                userEntity.Password = _passwordHasher.HashPassword(userEntity, userEntity.Password);
+            }
+
+            var updatedUser = await repository.UpdateItem(id, userEntity);
+            
+            if(updatedUser == null)
+                return null;
+
+           var userDtoUpdated = mapper.Map<UserDto>(updatedUser);
+            userDtoUpdated.Password = null;
+            return userDtoUpdated;
         }
         public async Task<UserDto> Exist(Login l)
         {
-            var user = (await repository.GetAll()).FirstOrDefault(u => u.Email == l.Email && u.Password == l.Password);
-            if (user != null)
+            var user = (await repository.GetAll()).FirstOrDefault(u => u.Email == l.Email);
+            if (user == null)
+                return null;
+            
+            var result = _passwordHasher.VerifyHashedPassword(user, user.Password, l.Password);
+           
+            if (result == PasswordVerificationResult.Success)
                 return mapper.Map<UserDto>(user);
+
             return null;
         }
-
+       
     }
 }
 

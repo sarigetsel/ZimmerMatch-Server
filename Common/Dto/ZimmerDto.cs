@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
@@ -14,11 +15,11 @@ namespace Common.Dto
 {
     public class ZimmerDto
     {
-        
-
         public int ZimmerId { get; set; }
+        [Range(1,100)]
         public int OwnerId { get; set; }
 
+        [Required]
         public string NameZimmer { get; set; }
         public string Description { get; set; }
 
@@ -37,8 +38,7 @@ namespace Common.Dto
 
         public List<IFormFile> ImageFiles { get; set; }
 
-        public List<byte[]>? ArrImages { get; set; }
-
+        public List<byte[]>? ArrImages { get; set; } = new List<byte[]>();
 
     }
 

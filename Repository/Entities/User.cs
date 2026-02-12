@@ -11,6 +11,7 @@ namespace Repository.Entities
         public string Phone { get; set; }
         public UserRole Role { get; set; }
         public List<Zimmer> Zimmers { get; set; } = new();
+        public List<Booking> Bookings { get; set; } = new();
 
     }
 }

@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace ZimmerMatch.Migrations
+namespace DataContext.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -21,7 +21,7 @@ namespace ZimmerMatch.Migrations
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Phone = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Role = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Role = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -44,8 +44,7 @@ namespace ZimmerMatch.Migrations
                     NumRooms = table.Column<int>(type: "int", nullable: false),
                     PricePerNight = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    MyProperty = table.Column<int>(type: "int", nullable: false),
-                    Facilities = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Facilities = table.Column<int>(type: "int", nullable: false),
                     ImageUrls = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
@@ -65,27 +64,69 @@ namespace ZimmerMatch.Migrations
                 {
                     AvailabilityId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    ZiimerId = table.Column<int>(type: "int", nullable: false),
+                    ZimmerId = table.Column<int>(type: "int", nullable: false),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndTime = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    IsBooked = table.Column<bool>(type: "bit", nullable: false),
-                    ZimmersZimmerId = table.Column<int>(type: "int", nullable: false)
+                    IsBooked = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Availabilities", x => x.AvailabilityId);
                     table.ForeignKey(
-                        name: "FK_Availabilities_Zimmers_ZimmersZimmerId",
-                        column: x => x.ZimmersZimmerId,
+                        name: "FK_Availabilities_Zimmers_ZimmerId",
+                        column: x => x.ZimmerId,
                         principalTable: "Zimmers",
                         principalColumn: "ZimmerId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Bookings",
+                columns: table => new
+                {
+                    BookingId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    ZimmerId = table.Column<int>(type: "int", nullable: false),
+                    BookingDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    NumGuests = table.Column<int>(type: "int", nullable: false),
+                    TotalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    SpecialRequests = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Status = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Bookings", x => x.BookingId);
+                    table.ForeignKey(
+                        name: "FK_Bookings_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Bookings_Zimmers_ZimmerId",
+                        column: x => x.ZimmerId,
+                        principalTable: "Zimmers",
+                        principalColumn: "ZimmerId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
             migrationBuilder.CreateIndex(
-                name: "IX_Availabilities_ZimmersZimmerId",
+                name: "IX_Availabilities_ZimmerId",
                 table: "Availabilities",
-                column: "ZimmersZimmerId");
+                column: "ZimmerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Bookings_UserId",
+                table: "Bookings",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Bookings_ZimmerId",
+                table: "Bookings",
+                column: "ZimmerId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Zimmers_OwnerId",
@@ -98,6 +139,9 @@ namespace ZimmerMatch.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Availabilities");
+
+            migrationBuilder.DropTable(
+                name: "Bookings");
 
             migrationBuilder.DropTable(
                 name: "Zimmers");

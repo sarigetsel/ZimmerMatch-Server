@@ -34,12 +34,13 @@ namespace Repository.Repositories
 
         public async Task<List<Availability>> GetAll()
         {
-            return await ctx.Availabilities.ToListAsync();
+            return await ctx.Availabilities.Include(a => a.Zimmers).ToListAsync();
         }
 
         public async Task<Availability> GetById(int id)
         {
-            return await ctx.Availabilities.FirstOrDefaultAsync(x => x.AvailabilityId == id);
+            return await ctx.Availabilities.Include(a => a.Zimmers)
+                .FirstOrDefaultAsync(x => x.AvailabilityId == id);
             
         }
 

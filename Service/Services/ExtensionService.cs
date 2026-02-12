@@ -1,5 +1,7 @@
 ﻿using Common.Dto;
 using Microsoft.Extensions.DependencyInjection;
+using Repository.Interfaces;
+using Repository.Repositories;
 using Service.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -19,7 +21,9 @@ namespace Service.Services
             services.AddScoped<IService<UserDto>,UserService>();
             services.AddScoped<IsExist<UserDto>, UserService>();
             services.AddScoped<IService<ZimmerDto>,ZimmerService>();
-           
+            services.AddScoped< IBookingService, BookingService>();
+            services.AddScoped<IBookingRepository, BookingRepository>();
+
             return services;
         }
     }

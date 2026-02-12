@@ -28,8 +28,11 @@ namespace Repository.Repositories
         public async Task DeleteItem(int id)
         {
             var zimmer =await ctx.Zimmers.FirstOrDefaultAsync(z => z.ZimmerId == id);
-            ctx.Zimmers.Remove(zimmer);
-            ctx.Save();
+            if (zimmer != null) 
+            {
+               ctx.Zimmers.Remove(zimmer);
+               await ctx.Save();
+            }
         }
 
         public async Task<List<Zimmer>> GetAll()

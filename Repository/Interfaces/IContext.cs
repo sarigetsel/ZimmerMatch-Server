@@ -10,6 +10,7 @@ namespace ZimmerMatch.Interfaces
         public DbSet<Zimmer> Zimmers { get; set; }
 
         public DbSet<Availability> Availabilities { get; set; }
+        public DbSet<Booking> Bookings { get; set; }
         public Task Save();
         
     }

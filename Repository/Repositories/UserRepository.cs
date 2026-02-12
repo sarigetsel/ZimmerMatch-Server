@@ -29,7 +29,7 @@ namespace Repository.Repositories
         {
             var user = await ctx.Users.FirstOrDefaultAsync(u => u.Id == id);
             ctx.Users.Remove(user);
-            ctx.Save();
+            await ctx.Save();
         }
 
         public async Task<List<User>> GetAll()

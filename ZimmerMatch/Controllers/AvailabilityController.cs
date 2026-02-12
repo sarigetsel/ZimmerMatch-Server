@@ -55,7 +55,7 @@ namespace ZimmerMatch.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Owner")]
+        [Authorize(Roles = "Owner,Admin")]
         public async Task<IActionResult> Post([FromBody] AvailabilityDto availability)
         {
             if (availability == null || !ModelState.IsValid)
@@ -73,7 +73,7 @@ namespace ZimmerMatch.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Owner")]
+        [Authorize(Roles = "Owner,Admin")]
         public async Task<IActionResult> Put(int id,[FromBody] AvailabilityDto availability)
         {
             if (availability == null || !ModelState.IsValid)
@@ -94,7 +94,7 @@ namespace ZimmerMatch.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Owner")]
+        [Authorize(Roles = "Owner,Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             try
