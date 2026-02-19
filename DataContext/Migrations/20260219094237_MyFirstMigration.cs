@@ -5,7 +5,7 @@
 namespace DataContext.Migrations
 {
     /// <inheritdoc />
-    public partial class cahngeEnum : Migration
+    public partial class MyFirstMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

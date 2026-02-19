@@ -57,9 +57,26 @@ namespace ZimmerMatch.Controllers
         [HttpPost]
 
         // הרשאת גישה רק לבעל הצימר
-        [Authorize(Roles = "Owner,Admin")]
+        [Authorize(Roles = "Owner")]
         public async Task<IActionResult> Post([FromForm] ZimmerDto zimmer)
         {
+            // 1. שליפת ה-ID של המשתמש מהטוקן
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return Unauthorized();
+
+            int currentUserId = int.Parse(userIdClaim.Value);
+
+            if (zimmer.OwnerId != 0 && zimmer.OwnerId != currentUserId)
+            {
+                return Forbid("אינך יכול להוסיף צימר עבור משתמש אחר!");
+            }
+
+            zimmer.OwnerId = currentUserId;
+            // 2. השמה כפויה של ה-ID לתוך הצימר - כך שגם אם הוא שלח OwnerId אחר, הוא יידרס
+            zimmer.OwnerId = int.Parse(userIdClaim.Value);
+
+
             if (zimmer == null || !ModelState.IsValid)
                 return BadRequest(ModelState);
 
@@ -98,6 +115,21 @@ namespace ZimmerMatch.Controllers
         [Authorize(Roles = "Owner")]
         public async Task<IActionResult> Put(int id,[FromForm] ZimmerDto zimmer)
         {
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return Unauthorized();
+
+            int currentUserId = int.Parse(userIdClaim.Value);
+
+            if (zimmer.OwnerId != 0 && zimmer.OwnerId != currentUserId)
+            {
+                return Forbid("אינך יכול לעדכן צימר שאינו שייך לך!");
+            }
+
+            zimmer.OwnerId = currentUserId;
+            zimmer.OwnerId = int.Parse(userIdClaim.Value);
+
+
             if (zimmer == null || !ModelState.IsValid)
                 return BadRequest(ModelState);
 
@@ -116,7 +148,8 @@ namespace ZimmerMatch.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Owner,Admin")]
+        [Authorize(Roles = "Admin")]
+        // רק מנהל יכול למחוק צימרים
         public async Task<IActionResult> Delete(int id)
         {
             try

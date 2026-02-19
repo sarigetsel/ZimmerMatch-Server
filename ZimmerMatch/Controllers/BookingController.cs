@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Repository.Entities;
 using Service.Interfaces;
+using System.Security.Claims;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -56,24 +57,29 @@ namespace ZimmerMatch.Controllers
             }
         }
 
-        [HttpGet("owner/{ownerId}")]
+        [HttpGet("my-bookings")]
         [Authorize(Roles = "Owner,Admin")]
-        public async Task<IActionResult> GetBookingsByOwner(int ownerId)
+        public async Task<IActionResult> GetBookingsByOwner()
         {
-            if (ownerId <= 0)
-                return BadRequest("Invalid owner id.");
             try
             {
+                var ownerIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (string.IsNullOrEmpty(ownerIdClaim))
+                    return Unauthorized();
+
+                int ownerId = int.Parse(ownerIdClaim);
+
                 var bookings = await _service.GetBookingsByOwner(ownerId);
 
                 if (bookings == null || !bookings.Any())
-                    return NotFound("No bookings found for this owner.");
+                    return NotFound("No bookings found.");
 
                 return Ok(bookings);
             }
             catch
             {
-                return StatusCode(500, "Failed to retrieve bookings for owner.");
+                return StatusCode(500, "Failed to retrieve bookings.");
             }
         }
 

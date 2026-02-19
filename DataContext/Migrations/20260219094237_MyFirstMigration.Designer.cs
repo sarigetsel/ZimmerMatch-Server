@@ -12,8 +12,8 @@ using ZimmerMatch;
 namespace DataContext.Migrations
 {
     [DbContext(typeof(ZimmerDbContext))]
-    [Migration("20260212120817_cahngeEnum")]
-    partial class cahngeEnum
+    [Migration("20260219094237_MyFirstMigration")]
+    partial class MyFirstMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
