@@ -24,7 +24,8 @@ namespace Common.Enums
             PrivateParking = 4096,     // חניה פרטית
             BreakfastIncluded = 8192,  // כולל ארוחת בוקר
             OutdoorSeating = 16384,     // פינת ישיבה חיצונית
-            Laundry = 32768             // מכונת כביסה
-        }
+            Laundry = 32768,             // מכונת כביסה
+            Sauna = 65536                // סאונה
+    }
     
 }

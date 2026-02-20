@@ -20,7 +20,7 @@ namespace Service.Services
             services.AddScoped<IService<AvailabilityDto>, AvailabilityService>();
             services.AddScoped<IService<UserDto>,UserService>();
             services.AddScoped<IsExist<UserDto>, UserService>();
-            services.AddScoped<IService<ZimmerDto>,ZimmerService>();
+            services.AddScoped<IZimmerService,ZimmerService>();
             services.AddScoped< IBookingService, BookingService>();
             services.AddScoped<IBookingRepository, BookingRepository>();
 

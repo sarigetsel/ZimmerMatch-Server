@@ -1,14 +1,16 @@
 ﻿using Common.Dto;
-using ZimmerMatch.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.IdentityModel.Tokens;
 using Repository.Entities;
 using Service.Interfaces;
+using Service.Services;
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using ZimmerMatch.Interfaces;
 
 namespace ZimmerMatch.Controllers
 {
@@ -16,9 +18,9 @@ namespace ZimmerMatch.Controllers
     [ApiController]
     public class ZimmerController:ControllerBase
     {
-        private readonly IService<ZimmerDto> _service;
+        private readonly IZimmerService _service;
 
-        public ZimmerController(IService<ZimmerDto> service)
+        public ZimmerController(IZimmerService service)
         {
             _service = service;
         }
@@ -161,6 +163,36 @@ namespace ZimmerMatch.Controllers
             {
                 return StatusCode(500, "Failed to delete zimmer.");
             }
+        }
+
+        [HttpGet("search")]
+        public async Task<ActionResult<List<ZimmerDto>>> Search([FromQuery] ZimmerSearchDto searchParams)
+        {
+            try
+            {
+                var results = await _service.SearchZimmersAsync(searchParams);
+                return Ok(results);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, $"Internal server error: {e.Message}");
+            }
+        }
+        [HttpGet("cities")]
+        // בשביל הריאקט- במקום שהמשתמש יכתוב סתם עיר- יוצג לו רשימה של ערים שקיימים באתר
+        public async Task<ActionResult<List<string>>> GetCities()
+        {
+            // שליפת כל הצימרים כדי לחלץ מהם את הערים
+            var zimmers = await _service.GetAll();
+
+            var cities = zimmers
+                .Where(z => !string.IsNullOrEmpty(z.City))
+                .Select(z => z.City.Trim())
+                .Distinct() // מונע כפילויות (שלא יופיע "ירושלים" פעמיים)
+                .OrderBy(c => c) 
+                .ToList();
+
+            return Ok(cities);
         }
     }
 }
