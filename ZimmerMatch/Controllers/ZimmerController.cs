@@ -151,7 +151,6 @@ namespace ZimmerMatch.Controllers
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
-        // רק מנהל יכול למחוק צימרים
         public async Task<IActionResult> Delete(int id)
         {
             try
@@ -179,16 +178,14 @@ namespace ZimmerMatch.Controllers
             }
         }
         [HttpGet("cities")]
-        // בשביל הריאקט- במקום שהמשתמש יכתוב סתם עיר- יוצג לו רשימה של ערים שקיימים באתר
         public async Task<ActionResult<List<string>>> GetCities()
         {
-            // שליפת כל הצימרים כדי לחלץ מהם את הערים
             var zimmers = await _service.GetAll();
 
             var cities = zimmers
                 .Where(z => !string.IsNullOrEmpty(z.City))
                 .Select(z => z.City.Trim())
-                .Distinct() // מונע כפילויות (שלא יופיע "ירושלים" פעמיים)
+                .Distinct()
                 .OrderBy(c => c) 
                 .ToList();
 

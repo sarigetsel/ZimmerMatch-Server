@@ -1,5 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using Common.Enums;
+﻿using Common.Enums;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Repository.Entities
 {
@@ -11,7 +12,10 @@ namespace Repository.Entities
         public string Description { get; set; }
         public string City { get; set; }
         public string Address { get; set; }
+
+        [Range(-90, 90, ErrorMessage = "קו רוחב חייב להיות בין -90 ל-90")]
         public double Latitude { get; set; } // קו רוחב למפה
+        [Range(-180, 180, ErrorMessage = "קו אורך חייב להיות בין -180 ל-180")]
         public double Longitude { get; set; } // קו אורך למפה
         public int NumRooms { get; set; }
         public decimal PricePerNight { get; set; }

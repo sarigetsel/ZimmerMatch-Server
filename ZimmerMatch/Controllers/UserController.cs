@@ -39,10 +39,12 @@ namespace ZimmerMatch.Controllers
             try
             {
                 var user = await _isExist.Exist(l);
-                if (user != null)
-                     return Ok(new { Token = GenerateToken(user) });
+                if (user == null)
+                    return NotFound("User doesnt exist.");
 
-                return NotFound("User doesnt exist.");
+                var token = GenerateToken(user);
+                user.Password = null; 
+                return Ok(new { user, token });
             }
             catch
             {
@@ -67,6 +69,7 @@ namespace ZimmerMatch.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<IActionResult> Get(int id)
         {
             try
@@ -89,7 +92,7 @@ namespace ZimmerMatch.Controllers
         }
         [HttpPost("register")]
         [AllowAnonymous]
-        public async Task<IActionResult> Register([FromBody] UserDto user)
+        public async Task<IActionResult> Register([FromForm] UserDto user)
         {
             if (user == null || !ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -112,10 +115,20 @@ namespace ZimmerMatch.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> Put(int id, [FromBody] UserDto user)
         {
+
             if (user == null || !ModelState.IsValid)
                 return BadRequest(ModelState);
+
+            var currentUser = GetCurrentUser();
+            if (currentUser == null)
+                return Unauthorized();
+
+            if (currentUser.Id != id && currentUser.Role != UserRole.Admin)
+                return Forbid();
+
             try
             {
                 var updatedUser = await _service.UpdateItem(id, user);
@@ -129,6 +142,7 @@ namespace ZimmerMatch.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             try

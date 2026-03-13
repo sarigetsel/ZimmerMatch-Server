@@ -48,7 +48,7 @@ namespace Service.Services
                opt => opt.MapFrom(src => src.Status.ToString()));
 
             CreateMap<BookingDto, Booking>()
-                  .ForMember(dest => dest.Status, opt => opt.MapFrom(src => Enum.Parse<BookingStatus>(src.Status)))
+                  .ForMember(dest => dest.Status, opt => opt.MapFrom(src => Enum.Parse<BookingStatus>(src.Status.ToString())))
                   .ForMember(dest => dest.User, opt => opt.Ignore())
                   .ForMember(dest => dest.Zimmer, opt => opt.Ignore());
 

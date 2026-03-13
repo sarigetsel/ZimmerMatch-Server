@@ -23,7 +23,7 @@ namespace ZimmerMatch.Controllers
 
         // GET: api/<BookingController>
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> Get()
         {
             try
@@ -58,7 +58,7 @@ namespace ZimmerMatch.Controllers
         }
 
         [HttpGet("my-bookings")]
-        [Authorize(Roles = "Owner,Admin")]
+        //[Authorize(Roles = "Owner,Admin")]
         public async Task<IActionResult> GetBookingsByOwner()
         {
             try
@@ -85,7 +85,7 @@ namespace ZimmerMatch.Controllers
 
         // POST api/<BookingController>
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] BookingDto booking)
+        public async Task<IActionResult> Post([FromForm] BookingDto booking)
         {
             if (booking == null || !ModelState.IsValid)
                 return BadRequest(ModelState);

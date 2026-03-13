@@ -14,10 +14,27 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestHeadersTotalSize = 1048576; // הגדלה ל-1MB
+});
+
 // Add services to the container.
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 
 
-builder.Services.AddControllers();
+
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -74,6 +91,18 @@ builder.Services.AddAutoMapper(typeof(MapperProfile));
 builder.Services.AddServices();
 builder.Services.AddOpenApi();
 
+// 1. הגדרת המדיניות (Policy)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:5173", "http://localhost:5174") // הכתובת של ה-React שלך
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+});
+
 //builder.Services.AddScoped<IContext, ZimmerDbContext>();
 var app = builder.Build();
 
@@ -103,8 +132,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication();// הרשאת גישה 
-app.UseAuthorization(); // אימות 
+app.UseCors("AllowReactApp");
+
+app.UseAuthentication(); 
+app.UseAuthorization(); 
 
 app.MapControllers();
 
