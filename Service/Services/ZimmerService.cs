@@ -31,6 +31,7 @@ namespace Service.Services
             var allAvailabilities = await availabilityRepository.GetAll();
             var query = allZimmers.AsQueryable();
 
+            // סינונים בסיסיים
             if (searchParams.MaxPrice.HasValue && searchParams.MaxPrice > 0)
                 query = query.Where(z => z.PricePerNight <= searchParams.MaxPrice);
 
@@ -39,6 +40,15 @@ namespace Service.Services
 
             if (!string.IsNullOrWhiteSpace(searchParams.City))
                 query = query.Where(z => z.City.Contains(searchParams.City));
+
+            if (searchParams.HasPool == true)
+                query = query.Where(z => ((int)z.Facilities & 1) == 1);
+
+            if (searchParams.HasJacuzzi == true)
+                query = query.Where(z => ((int)z.Facilities & 2) == 2);
+
+            if (searchParams.HasSauna == true)
+                query = query.Where(z => ((int)z.Facilities & 4) == 4);
 
             var baseFiltered = query.ToList();
 

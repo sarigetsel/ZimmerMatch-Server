@@ -177,42 +177,40 @@ namespace ZimmerMatch.Controllers
                 Console.WriteLine(ex);
                 return StatusCode(500, "Failed to update zimmer.");
             }
-        }
-
-
-        [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin,Owner")]  
-        public async Task<IActionResult> Delete(int id)
-        {
-            try
+            }
+            [HttpDelete("{id}")]
+            [Authorize(Roles = "Admin,Owner")]
+            public async Task<IActionResult> Delete(int id)
             {
-                var zimmer = await _service.GetById(id);
-                if (zimmer == null)
-                    return NotFound("הצימר לא נמצא.");
-
-                var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-                if (userIdClaim == null)
-                    return Unauthorized();
-
-                int currentUserId = int.Parse(userIdClaim.Value);
-                var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
-
-                if (userRole != "Admin" && zimmer.OwnerId != currentUserId)
+                try
                 {
-                    return Forbid("אינך יכול למחוק צימר שאינו שייך לך!");
+                    var existingZimmer = await _service.GetById(id);
+                    if (existingZimmer == null)
+                        return NotFound("הצימר לא נמצא.");
+
+                    var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+                    if (userIdClaim == null)
+                        return Unauthorized();
+
+                    int currentUserId = int.Parse(userIdClaim.Value);
+                    bool isAdmin = User.IsInRole("Admin");
+
+                    if (!isAdmin && existingZimmer.OwnerId != currentUserId)
+                    {
+                        return Forbid("אינך מורשה למחוק צימר שאינו בבעלותך!");
+                    }
+
+                    await _service.DeleteItem(id);
+                    return NoContent();
                 }
-
-                await _service.DeleteItem(id);
-                return NoContent();
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    return StatusCode(500, "נכשלה מחיקת הצימר.");
+                }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return StatusCode(500, "Failed to delete zimmer.");
-            }
-        }
 
-        [HttpGet("search")]
+            [HttpGet("search")]
         public async Task<ActionResult<List<ZimmerDto>>> Search([FromQuery] ZimmerSearchDto searchParams)
         {
             try
