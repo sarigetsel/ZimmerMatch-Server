@@ -34,9 +34,9 @@ namespace Common.Dto
 
         public DateTime CreatedAt { get; set; }
         
-        public Facility Facilities { get; set; } 
+        public Facility Facilities { get; set; }
 
-        public List<IFormFile>? ImageFiles { get; set; }
+        public List<IFormFile>? ImageFiles { get; set; } = new List<IFormFile>();
 
         public List<byte[]>? ArrImages { get; set; } = new List<byte[]>();
 

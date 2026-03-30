@@ -18,9 +18,15 @@ namespace Service.Services
         public MapperProfile()
         {
 
-             CreateMap<Zimmer, ZimmerDto>()
-             .ForMember(dest => dest.ArrImages,
-              o => o.MapFrom(src => src.ImageUrls.Select(fileName => File.ReadAllBytes(Path.Combine(path, fileName))).ToList()));
+            CreateMap<Zimmer, ZimmerDto>()
+     .ForMember(dest => dest.ArrImages, o => o.MapFrom(src =>
+         (src.ImageUrls != null)
+         ? src.ImageUrls
+             .Select(fileName => Path.Combine(path, fileName)) 
+             .Where(fullPath => File.Exists(fullPath))        
+             .Select(fullPath => File.ReadAllBytes(fullPath))
+             .ToList()
+         : new List<byte[]>()));
 
             CreateMap<ZimmerDto, Zimmer>()
                 .ForMember(dest => dest.ImageUrls,
@@ -53,7 +59,7 @@ namespace Service.Services
                   .ForMember(dest => dest.Zimmer, opt => opt.Ignore());
 
             CreateMap<BookingCreateDto, Booking>()
-                  .ForMember(dest => dest.User, opt => opt.Ignore())   // מונע ניסיון ליצור משתמש חדש
+                  .ForMember(dest => dest.User, opt => opt.Ignore())   
                   .ForMember(dest => dest.Zimmer, opt => opt.Ignore());
         }
         public byte[] myconvert(string url)

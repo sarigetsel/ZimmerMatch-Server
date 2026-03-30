@@ -85,7 +85,7 @@ namespace ZimmerMatch.Controllers
 
             if (zimmer.OwnerId != 0 && zimmer.OwnerId != currentUserId)
             {
-                return Forbid("אינך יכול להוסיף צימר עבור משתמש אחר!");
+                return StatusCode(403, "אינך יכול להוסיף צימר עבור משתמש אחר!");
             }
 
             zimmer.OwnerId = currentUserId;
@@ -103,78 +103,73 @@ namespace ZimmerMatch.Controllers
 
                 foreach (var file in zimmer.ImageFiles)
                 {
-                    if (file.Length == 0)
-                        continue;
+                    if (file.Length == 0) continue;
 
-                    var imagesPath = Path.Combine(imagesDir, file.FileName);
-                    using (var fs = new FileStream(imagesPath, FileMode.Create))
-                        await file.CopyToAsync(fs);
+                    var uniqueFileName = $"{Guid.NewGuid()}_{file.FileName}";
+                    var imagesPath = Path.Combine(imagesDir, uniqueFileName);
 
-                    using var ms = new MemoryStream();
-                    await file.CopyToAsync(ms);
-                    zimmer.ArrImages.Add(ms.ToArray());
+                    using (var ms = new MemoryStream())
+                    {
+                        await file.CopyToAsync(ms);
+                        byte[] fileBytes = ms.ToArray();
+
+                        await System.IO.File.WriteAllBytesAsync(imagesPath, fileBytes);
+
+                        zimmer.ArrImages.Add(fileBytes);
+                    }
                 }
 
                 var newZimmer = await _service.AddItem(zimmer);
                 return Ok(newZimmer);
             }
-            catch
+            catch (Exception ex)
             {
-                return StatusCode(500, "Failed to create zimmer.");
+                Console.WriteLine($"[Post Error]: {ex.Message}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-
         [HttpPut("{id}")]
         [Authorize(Roles = "Owner")]
         public async Task<IActionResult> Put(int id, [FromForm] ZimmerDto zimmer)
         {
             var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-            if (userIdClaim == null)
-                return Unauthorized();
+            if (userIdClaim == null) return Unauthorized();
 
             int currentUserId = int.Parse(userIdClaim.Value);
+            var existingZimmer = await _service.GetById(id);
+            if (existingZimmer == null) return NotFound();
 
-            if (zimmer.OwnerId != 0 && zimmer.OwnerId != currentUserId)
+            if (existingZimmer.OwnerId != currentUserId)
                 return Forbid("אינך יכול לעדכן צימר שאינו שייך לך!");
 
             zimmer.OwnerId = currentUserId;
+            zimmer.ZimmerId = id;
 
-            if (zimmer == null || !ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
             try
             {
-                var existingZimmer = await _service.GetById(id);
-                if (existingZimmer == null)
-                    return NotFound();
-
                 var imagesDir = Path.Combine(Environment.CurrentDirectory, "images");
-                if (!Directory.Exists(imagesDir))
-                    Directory.CreateDirectory(imagesDir);
+                if (!Directory.Exists(imagesDir)) Directory.CreateDirectory(imagesDir);
 
-                if (existingZimmer.ArrImages != null)
-                    existingZimmer.ArrImages.Clear();
-
-                zimmer.ArrImages = new List<byte[]>();
-
-                foreach (var file in zimmer.ImageFiles)
+                if (zimmer.ImageFiles != null && zimmer.ImageFiles.Any())
                 {
-                    if (file.Length == 0)
-                        continue;
+                    zimmer.ArrImages = new List<byte[]>();
+                    foreach (var file in zimmer.ImageFiles)
+                    {
+                        if (file.Length == 0) continue;
+                        using var ms = new MemoryStream();
+                        await file.CopyToAsync(ms);
+                        byte[] fileBytes = ms.ToArray();
+                        zimmer.ArrImages.Add(fileBytes);
 
-                    var uniqueFileName = $"{Guid.NewGuid()}_{file.FileName}";
-                    var imagesPath = Path.Combine(imagesDir, uniqueFileName);
-
-                    using var ms = new MemoryStream();
-                    await file.OpenReadStream().CopyToAsync(ms);
-                    zimmer.ArrImages.Add(ms.ToArray());
-                    await System.IO.File.WriteAllBytesAsync(imagesPath, ms.ToArray());
+                        var uniqueFileName = $"{Guid.NewGuid()}_{file.FileName}";
+                        var imagesPath = Path.Combine(imagesDir, uniqueFileName);
+                        await System.IO.File.WriteAllBytesAsync(imagesPath, fileBytes);
+                    }
                 }
 
                 var updatedZimmer = await _service.UpdateItem(id, zimmer);
-                if (updatedZimmer == null)
-                    return NotFound();
-
                 return Ok(updatedZimmer);
             }
             catch (Exception ex)
@@ -184,17 +179,35 @@ namespace ZimmerMatch.Controllers
             }
         }
 
+
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Owner")]  
         public async Task<IActionResult> Delete(int id)
         {
             try
             {
+                var zimmer = await _service.GetById(id);
+                if (zimmer == null)
+                    return NotFound("הצימר לא נמצא.");
+
+                var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+                if (userIdClaim == null)
+                    return Unauthorized();
+
+                int currentUserId = int.Parse(userIdClaim.Value);
+                var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+
+                if (userRole != "Admin" && zimmer.OwnerId != currentUserId)
+                {
+                    return Forbid("אינך יכול למחוק צימר שאינו שייך לך!");
+                }
+
                 await _service.DeleteItem(id);
                 return NoContent();
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 return StatusCode(500, "Failed to delete zimmer.");
             }
         }
