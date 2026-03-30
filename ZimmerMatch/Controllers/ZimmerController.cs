@@ -183,19 +183,34 @@ namespace ZimmerMatch.Controllers
                 return StatusCode(500, "Failed to update zimmer.");
             }
         }
-
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Owner")] 
         public async Task<IActionResult> Delete(int id)
         {
             try
             {
+                var existingZimmer = await _service.GetById(id);
+                if (existingZimmer == null)
+                    return NotFound("הצימר לא נמצא.");
+
+                var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+                if (userIdClaim == null)
+                    return Unauthorized();
+
+                int currentUserId = int.Parse(userIdClaim.Value);
+                bool isAdmin = User.IsInRole("Admin");
+
+                if (!isAdmin && existingZimmer.OwnerId != currentUserId)
+                {
+                    return Forbid("אינך מורשה למחוק צימר שאינו בבעלותך!");
+                }
+
                 await _service.DeleteItem(id);
                 return NoContent();
             }
-            catch
+            catch (Exception ex)
             {
-                return StatusCode(500, "Failed to delete zimmer.");
+                return StatusCode(500, "נכשלה מחיקת הצימר.");
             }
         }
 
