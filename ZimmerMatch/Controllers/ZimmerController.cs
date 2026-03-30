@@ -55,14 +55,28 @@ namespace ZimmerMatch.Controllers
                 return StatusCode(500, "Failed to retrieve zimmer.");
             }
         }
+        [HttpGet("zimmer/{zimmerId}")]
+        public async Task<IActionResult> GetByZimmer(int zimmerId)
+        {
+            try
+            {
+                var availabilities = await _service.GetAll();
+
+                var result = availabilities.Where(a => a.ZimmerId == zimmerId);
+
+                return Ok(result);
+            }
+            catch
+            {
+                return StatusCode(500, "Failed to retrieve availability.");
+            }
+        }
+
 
         [HttpPost]
-
-        // הרשאת גישה רק לבעל הצימר
         [Authorize(Roles = "Owner")]
         public async Task<IActionResult> Post([FromForm] ZimmerDto zimmer)
         {
-            // 1. שליפת ה-ID של המשתמש מהטוקן
             var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
             if (userIdClaim == null)
                 return Unauthorized();
@@ -75,9 +89,6 @@ namespace ZimmerMatch.Controllers
             }
 
             zimmer.OwnerId = currentUserId;
-            // 2. השמה כפויה של ה-ID לתוך הצימר - כך שגם אם הוא שלח OwnerId אחר, הוא יידרס
-            zimmer.OwnerId = int.Parse(userIdClaim.Value);
-
 
             if (zimmer == null || !ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -115,7 +126,7 @@ namespace ZimmerMatch.Controllers
 
         [HttpPut("{id}")]
         [Authorize(Roles = "Owner")]
-        public async Task<IActionResult> Put(int id,[FromForm] ZimmerDto zimmer)
+        public async Task<IActionResult> Put(int id, [FromForm] ZimmerDto zimmer)
         {
             var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
             if (userIdClaim == null)
@@ -124,27 +135,51 @@ namespace ZimmerMatch.Controllers
             int currentUserId = int.Parse(userIdClaim.Value);
 
             if (zimmer.OwnerId != 0 && zimmer.OwnerId != currentUserId)
-            {
                 return Forbid("אינך יכול לעדכן צימר שאינו שייך לך!");
-            }
 
             zimmer.OwnerId = currentUserId;
-            zimmer.OwnerId = int.Parse(userIdClaim.Value);
-
 
             if (zimmer == null || !ModelState.IsValid)
                 return BadRequest(ModelState);
 
             try
             {
+                var existingZimmer = await _service.GetById(id);
+                if (existingZimmer == null)
+                    return NotFound();
+
+                var imagesDir = Path.Combine(Environment.CurrentDirectory, "images");
+                if (!Directory.Exists(imagesDir))
+                    Directory.CreateDirectory(imagesDir);
+
+                if (existingZimmer.ArrImages != null)
+                    existingZimmer.ArrImages.Clear();
+
+                zimmer.ArrImages = new List<byte[]>();
+
+                foreach (var file in zimmer.ImageFiles)
+                {
+                    if (file.Length == 0)
+                        continue;
+
+                    var uniqueFileName = $"{Guid.NewGuid()}_{file.FileName}";
+                    var imagesPath = Path.Combine(imagesDir, uniqueFileName);
+
+                    using var ms = new MemoryStream();
+                    await file.OpenReadStream().CopyToAsync(ms);
+                    zimmer.ArrImages.Add(ms.ToArray());
+                    await System.IO.File.WriteAllBytesAsync(imagesPath, ms.ToArray());
+                }
+
                 var updatedZimmer = await _service.UpdateItem(id, zimmer);
                 if (updatedZimmer == null)
                     return NotFound();
 
                 return Ok(updatedZimmer);
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine(ex);
                 return StatusCode(500, "Failed to update zimmer.");
             }
         }

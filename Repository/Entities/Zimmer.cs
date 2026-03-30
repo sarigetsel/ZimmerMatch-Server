@@ -27,6 +27,5 @@ namespace Repository.Entities
         public List<String> ImageUrls { get; set; } = new();
         public List<Availability> Availabilities { get; set; } = new();
         public List<Booking> Bookings { get; set; }
-
     }
 }

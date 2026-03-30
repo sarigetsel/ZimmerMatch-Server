@@ -20,6 +20,7 @@ namespace Repository.Repositories
         public async Task<Booking> AddItem(Booking booking)
         {
             ctx.Bookings.AddAsync(booking);
+            Console.WriteLine($"[Repository] Saving booking to DB with status: {booking.Status}");
             await ctx.Save();
             return booking;
         }

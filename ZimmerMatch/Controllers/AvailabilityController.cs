@@ -53,9 +53,27 @@ namespace ZimmerMatch.Controllers
                 return StatusCode(500, "Failed to retrieve availability.");
             }
         }
+        [HttpGet("zimmer/{zimmerId}")]
+        public async Task<IActionResult> GetByZimmer(int zimmerId)
+        {
+            try
+            {
+                var availabilities = await _service.GetAll();
+
+                var result = availabilities
+                    .Where(a => a.ZimmerId == zimmerId)
+                    .ToList();
+
+                return Ok(result);
+            }
+            catch
+            {
+                return StatusCode(500, "Failed to retrieve availability.");
+            }
+        }
 
         [HttpPost]
-        //[Authorize(Roles = "Owner,Admin")]
+        [Authorize(Roles = "Owner,Admin")]
         public async Task<IActionResult> Post([FromBody] AvailabilityDto availability)
         {
             if (availability == null || !ModelState.IsValid)
@@ -73,7 +91,7 @@ namespace ZimmerMatch.Controllers
         }
 
         [HttpPut("{id}")]
-        //[Authorize(Roles = "Owner,Admin")]
+        [Authorize(Roles = "Owner,Admin")]
         public async Task<IActionResult> Put(int id,[FromBody] AvailabilityDto availability)
         {
             if (availability == null || !ModelState.IsValid)
@@ -94,7 +112,7 @@ namespace ZimmerMatch.Controllers
         }
 
         [HttpDelete("{id}")]
-        //[Authorize(Roles = "Owner,Admin")]
+        [Authorize(Roles = "Owner,Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             try

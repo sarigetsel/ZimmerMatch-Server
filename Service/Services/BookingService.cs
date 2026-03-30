@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Common.Dto;
+using Common.Enums;
 using Repository.Entities;
 using Repository.Interfaces;
 using Service.Interfaces;
@@ -23,7 +24,13 @@ namespace Service.Services
 
         public async Task<BookingDto> AddItem(BookingDto bookingDto)
         {
+            if (!Enum.IsDefined(typeof(BookingStatus), bookingDto.Status))
+            {
+                bookingDto.Status = BookingStatus.Confirmed;
+            }
             var entity = mapper.Map<Booking>(bookingDto);
+            Console.WriteLine($"[Service] Mapped entity status: {entity.Status}");
+
             var createdEntity = await repository.AddItem(entity);
             return mapper.Map<BookingDto>(createdEntity);
         }
