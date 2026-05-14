@@ -15,7 +15,7 @@ namespace Common.Dto
         public bool IsBooked { get; set; }
 
         public int ZimmerId { get; set; }
-        public string ZimmerName { get; set; }
+        public string? ZimmerName { get; set; }
 
     }
 }
