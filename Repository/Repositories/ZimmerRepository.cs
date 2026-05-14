@@ -37,12 +37,12 @@ namespace Repository.Repositories
 
         public async Task<List<Zimmer>> GetAll()
         {
-            return await ctx.Zimmers.ToListAsync();
+            return await ctx.Zimmers.Include(z => z.Owner).ToListAsync();
         }
 
         public async Task<Zimmer> GetById(int id)
         {
-            return await ctx.Zimmers.FirstOrDefaultAsync(z => z.ZimmerId == id);
+            return await ctx.Zimmers.Include(z => z.Owner).FirstOrDefaultAsync(z => z.ZimmerId == id);
         }
 
         public async Task<Zimmer> UpdateItem(int id, Zimmer zimmer)

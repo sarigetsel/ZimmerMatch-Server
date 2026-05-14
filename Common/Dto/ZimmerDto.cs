@@ -35,6 +35,7 @@ namespace Common.Dto
         public DateTime CreatedAt { get; set; }
         
         public Facility Facilities { get; set; }
+        public UserDto? Owner { get; set; }
         public List<string> ImageUrls { get; set; } = new List<string>();
 
         public List<IFormFile>? ImageFiles { get; set; } = new List<IFormFile>();
