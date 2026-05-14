@@ -2,7 +2,7 @@
 
 namespace Repository.Entities
 {
-    public class Availability // יומן זמינות
+    public class Availability 
     {
         public int AvailabilityId { get; set; }
         public int ZimmerId { get; set; }

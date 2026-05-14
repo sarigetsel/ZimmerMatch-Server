@@ -106,21 +106,6 @@ builder.Services.AddCors(options =>
 //builder.Services.AddScoped<IContext, ZimmerDbContext>();
 var app = builder.Build();
 
-//using (var scope = app.Services.CreateScope())
-//{
-//    try
-//    {
-//        var context = scope.ServiceProvider.GetRequiredService<ZimmerDbContext>();
-//        ZimmerSeederFull.Seed(context);
-//        Console.WriteLine("Seeder executed successfully.");
-//    }
-//    catch (Exception ex)
-//    {
-//       Console.WriteLine("Seeder failed: " + ex.Message);
-//    }
-//}
-
-
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

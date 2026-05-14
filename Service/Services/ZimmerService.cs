@@ -31,7 +31,6 @@ namespace Service.Services
             var allAvailabilities = await availabilityRepository.GetAll();
             var query = allZimmers.AsQueryable();
 
-            // סינונים בסיסיים
             if (searchParams.MaxPrice.HasValue && searchParams.MaxPrice > 0)
                 query = query.Where(z => z.PricePerNight <= searchParams.MaxPrice);
 
@@ -42,13 +41,13 @@ namespace Service.Services
                 query = query.Where(z => z.City.Contains(searchParams.City));
 
             if (searchParams.HasPool == true)
-                query = query.Where(z => ((int)z.Facilities & 1) == 1);
+                query = query.Where(z => z.Facilities.HasFlag(Facility.Pool));
 
             if (searchParams.HasJacuzzi == true)
-                query = query.Where(z => ((int)z.Facilities & 2) == 2);
+                query = query.Where(z => z.Facilities.HasFlag(Facility.Jacuzzi));
 
             if (searchParams.HasSauna == true)
-                query = query.Where(z => ((int)z.Facilities & 4) == 4);
+                query = query.Where(z => z.Facilities.HasFlag(Facility.Sauna));
 
             var baseFiltered = query.ToList();
 
@@ -58,14 +57,60 @@ namespace Service.Services
             var searchText = searchParams.FreeText.ToLower();
             var words = searchText.Split(new[] { ' ', ',', '.', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
 
+            int? minRooms = null;
+            int? maxRooms = null;
+            int? minPrice = null;
+            int? maxPrice = null;
+
+            for (int i = 0; i < words.Length; i++)
+            {
+                if (int.TryParse(words[i], out int num))
+                {
+                    bool isRooms = (i + 1 < words.Length &&
+                        (words[i + 1].StartsWith("חדר")));
+
+                    bool isPrice = (i + 1 < words.Length &&
+                        (words[i + 1].StartsWith("שקל") || words[i + 1].Contains("ש\"ח")));
+
+                    bool min = (i - 1 >= 0 &&
+                        (words[i - 1].Contains("לפחות") || words[i - 1].Contains("מינימום")));
+
+                    bool max = (i - 1 >= 0 &&
+                        (words[i - 1].Contains("עד") || words[i - 1].Contains("מקסימום")));
+
+                    if (isRooms)
+                    {
+                        if (min) minRooms = num;
+                        else if (max) maxRooms = num;
+                        else maxRooms = num;
+                    }
+
+                    if (isPrice)
+                    {
+                        if (min) minPrice = num;
+                        else if (max) maxPrice = num;
+                        else maxPrice = num;
+                    }
+                }
+            }
+
+            var filtered = baseFiltered.Where(z =>
+            {
+                if (minRooms.HasValue && z.NumRooms < minRooms) return false;
+                if (maxRooms.HasValue && z.NumRooms > maxRooms) return false;
+                if (minPrice.HasValue && z.PricePerNight < minPrice) return false;
+                if (maxPrice.HasValue && z.PricePerNight > maxPrice) return false;
+                return true;
+            }).ToList();
+
             var regions = new Dictionary<string, List<string>>
             {
-                { "צפון", new List<string> { "צפת", "טבריה", "מירון", "חצור", "ראש פינה", "נהריה", "כרמיאל", "דלתון", "ספסופה", "חרמון" } },
-                { "דרום", new List<string> { "אילת", "באר שבע", "ערד", "מצפה רמון", "נתיבות", "אשקלון" } },
-                { "מרכז", new List<string> { "תל אביב", "נתניה", "הרצליה", "ירושלים", "בני ברק" } }
+                { "צפון", new List<string> { "צפת", "טבריה", "מירון", "חצור", "ראש פינה", "נהריה", "כרמיאל", "דלתון", "ספסופה", "חרמון","כרמל", "פרדס חנה", "ירכא","בצת", "רמת הגולן והכנרת" } },
+                { "דרום", new List<string> { "אילת", "באר שבע", "ערד", "מצפה רמון", "נתיבות", "אשקלון","ירוחם" } },
+                { "מרכז", new List<string> { "תל אביב", "נתניה", "הרצליה", "ירושלים", "בני ברק", "מודיעין עילית" } }
             };
 
-            var scoredResults = baseFiltered.Select(z =>
+            var scoredResults = filtered.Select(z =>
             {
                 int score = 0;
                 string zName = (z.NameZimmer ?? "").ToLower();
@@ -74,29 +119,45 @@ namespace Service.Services
 
                 foreach (var word in words.Where(w => w.Length > 2))
                 {
-                    if (zName.Contains(word)) score += 20;
-                    if (zCity.Contains(word)) score += 15;
-                    if (zDesc.Contains(word)) score += 5;
-                    if (CalculateLevenshteinDistance(word, zCity) <= 1) score += 10;
+                    bool matched = false;
+
+                    if (!matched && zName.Contains(word))
+                    {
+                        score += 20;
+                        matched = true;
+                    }
+                    else if (!matched && IsFuzzyMatch(word, zName))
+                    {
+                        score += 15;
+                        matched = true;
+                    }
+
+                    if (!matched && zCity.Contains(word))
+                    {
+                        score += 15;
+                        matched = true;
+                    }
+                    else if (!matched && IsFuzzyMatch(word, zCity))
+                    {
+                        score += 10;
+                        matched = true;
+                    }
+
+                    if (!matched && zDesc.Contains(word))
+                    {
+                        score += 5;
+                        matched = true;
+                    }
+                    else if (!matched && IsFuzzyMatch(word, zDesc))
+                    {
+                        score += 5;
+                    }
                 }
 
                 foreach (var region in regions)
                 {
                     if (searchText.Contains(region.Key) && region.Value.Any(c => zCity.Contains(c.ToLower())))
                         score += 30;
-                }
-
-                for (int i = 0; i < words.Length; i++)
-                {
-                    if (int.TryParse(words[i], out int num))
-                    {
-                        bool isRooms = (i + 1 < words.Length && words[i + 1].Contains("חדר"));
-                        bool isPrice = (i + 1 < words.Length && (words[i + 1].Contains("שקל") || words[i + 1].Contains("ש\"ח")));
-
-                        if (isRooms && z.NumRooms >= num) score += 40;
-                        if (isPrice && z.PricePerNight <= num) score += 40;
-                        if (!isRooms && !isPrice && (z.NumRooms == num || z.PricePerNight <= num)) score += 10;
-                    }
                 }
 
                 return new { Zimmer = z, Score = score };
@@ -124,6 +185,30 @@ namespace Service.Services
                     d[i, j] = Math.Min(Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + cost);
                 }
             return d[n, m];
+        }
+
+        private bool IsFuzzyMatch(string source, string target)
+        {
+            var sourceWords = source.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var targetWords = target.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var s in sourceWords)
+            {
+                foreach (var t in targetWords)
+                {
+                    int distance = CalculateLevenshteinDistance(s, t);
+
+                    if (
+                        (s.Length <= 4 && distance <= 1) ||
+                        (s.Length > 4 && distance <= 2)
+                    )
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         public async Task<ZimmerDto> AddItem(ZimmerDto zimmerDto) => mapper.Map<ZimmerDto>(await repository.AddItem(mapper.Map<Zimmer>(zimmerDto)));

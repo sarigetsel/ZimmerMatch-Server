@@ -82,7 +82,7 @@ namespace ZimmerMatch.Controllers
                 if (user == null)
                     return NotFound();
 
-                user.Password = null; // Hide password
+                user.Password = null; 
                 return Ok(user);
             }
             catch

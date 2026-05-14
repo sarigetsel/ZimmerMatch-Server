@@ -39,28 +39,24 @@ namespace ZimmerMatch
         {
             base.OnModelCreating(modelBuilder);
 
-            // 1. הגדרת הקשר בין הזמנה (Booking) לצימר
             modelBuilder.Entity<Booking>()
                 .HasOne(b => b.Zimmer)
                 .WithMany(z => z.Bookings)
                 .HasForeignKey(b => b.ZimmerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // 2. הגדרת הקשר בין הזמנה (Booking) למשתמש (User)
             modelBuilder.Entity<Booking>()
                 .HasOne(b => b.User)
                 .WithMany(u => u.Bookings)
                 .HasForeignKey(b => b.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // 3. הגדרת הקשר בין צימר לבעלים (User)
             modelBuilder.Entity<Zimmer>()
                 .HasOne(z => z.Owner)
                 .WithMany(u => u.Zimmers)
                 .HasForeignKey(z => z.OwnerId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // 4. הגדרת הקשר בין זמינות (Availability) לצימר
             modelBuilder.Entity<Availability>()
                 .HasOne(a => a.Zimmers)
                 .WithMany(z => z.Availabilities)

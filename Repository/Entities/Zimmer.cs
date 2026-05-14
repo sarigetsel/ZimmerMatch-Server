@@ -14,9 +14,9 @@ namespace Repository.Entities
         public string Address { get; set; }
 
         [Range(-90, 90, ErrorMessage = "קו רוחב חייב להיות בין -90 ל-90")]
-        public double Latitude { get; set; } // קו רוחב למפה
+        public double Latitude { get; set; } 
         [Range(-180, 180, ErrorMessage = "קו אורך חייב להיות בין -180 ל-180")]
-        public double Longitude { get; set; } // קו אורך למפה
+        public double Longitude { get; set; } 
         public int NumRooms { get; set; }
         public decimal PricePerNight { get; set; }
         public DateTime CreatedAt { get; set; } // תאריך הוספה למערכת

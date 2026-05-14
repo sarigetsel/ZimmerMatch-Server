@@ -19,19 +19,23 @@ namespace Service.Services
         {
 
             CreateMap<Zimmer, ZimmerDto>()
-     .ForMember(dest => dest.ArrImages, o => o.MapFrom(src =>
-         (src.ImageUrls != null)
-         ? src.ImageUrls
-             .Select(fileName => Path.Combine(path, fileName)) 
-             .Where(fullPath => File.Exists(fullPath))        
-             .Select(fullPath => File.ReadAllBytes(fullPath))
-             .ToList()
-         : new List<byte[]>()));
+              .ForMember(dest => dest.ArrImages, o => o.MapFrom(src =>
+                 (src.ImageUrls != null)
+                ? src.ImageUrls
+              .Select(fileName => Path.Combine(Directory.GetCurrentDirectory(), "images", fileName)) 
+              .Where(fullPath => File.Exists(fullPath))
+              .Select(fullPath => File.ReadAllBytes(fullPath))
+              .ToList()
+                 : new List<byte[]>()));
+
 
             CreateMap<ZimmerDto, Zimmer>()
-                .ForMember(dest => dest.ImageUrls,
-                 o => o.MapFrom(src => src.ImageFiles != null?
-                 src.ImageFiles.Select(f => f.FileName).ToList(): new List<string>()));
+                .ForMember(dest => dest.ImageUrls, o => o.MapFrom(src =>
+                    (src.ImageUrls != null && src.ImageUrls.Any())
+                    ? src.ImageUrls 
+                    : (src.ImageFiles != null
+                        ? src.ImageFiles.Select(f => f.FileName).ToList()
+                        : new List<string>())));
 
 
             CreateMap<User, UserDto>().ReverseMap();

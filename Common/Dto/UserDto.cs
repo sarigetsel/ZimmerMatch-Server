@@ -16,6 +16,5 @@ namespace Common.Dto
         public string Phone { get; set; }
         public string Password{ get; set; }
         public UserRole Role { get; set; }
-       // public List<ZimmerDto> Zimmers { get; set; } = new();
     }
 }

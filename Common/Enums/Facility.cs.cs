@@ -26,6 +26,6 @@ namespace Common.Enums
             OutdoorSeating = 16384,     // פינת ישיבה חיצונית
             Laundry = 32768,             // מכונת כביסה
             Sauna = 65536                // סאונה
-    }
+        }
     
 }

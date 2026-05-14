@@ -60,15 +60,15 @@ namespace ZimmerMatch.Controllers
         {
             try
             {
-                var availabilities = await _service.GetAll();
+                var zimmers = await _service.GetAll();
 
-                var result = availabilities.Where(a => a.ZimmerId == zimmerId);
+                var result = zimmers.Where(a => a.ZimmerId == zimmerId);
 
                 return Ok(result);
             }
             catch
             {
-                return StatusCode(500, "Failed to retrieve availability.");
+                return StatusCode(500, "Failed to retrieve zimmer.");
             }
         }
 
@@ -95,27 +95,33 @@ namespace ZimmerMatch.Controllers
 
             try
             {
-                var imagesDir = Path.Combine(Environment.CurrentDirectory, "images");
+                var imagesDir = Path.Combine(Directory.GetCurrentDirectory(), "images");
                 if (!Directory.Exists(imagesDir))
                     Directory.CreateDirectory(imagesDir);
 
                 zimmer.ArrImages = new List<byte[]>();
+                zimmer.ImageUrls = new List<string>();
 
-                foreach (var file in zimmer.ImageFiles)
+                if (zimmer.ImageFiles != null && zimmer.ImageFiles.Any())
                 {
-                    if (file.Length == 0) continue;
-
-                    var uniqueFileName = $"{Guid.NewGuid()}_{file.FileName}";
-                    var imagesPath = Path.Combine(imagesDir, uniqueFileName);
-
-                    using (var ms = new MemoryStream())
+                    foreach (var file in zimmer.ImageFiles)
                     {
-                        await file.CopyToAsync(ms);
-                        byte[] fileBytes = ms.ToArray();
+                        if (file.Length == 0) continue;
 
-                        await System.IO.File.WriteAllBytesAsync(imagesPath, fileBytes);
+                        var uniqueFileName = $"{Guid.NewGuid()}_{file.FileName}";
+                        var imagesPath = Path.Combine(imagesDir, uniqueFileName);
 
-                        zimmer.ArrImages.Add(fileBytes);
+                        using (var ms = new MemoryStream())
+                        {
+                            await file.CopyToAsync(ms);
+                            byte[] fileBytes = ms.ToArray();
+
+                            await System.IO.File.WriteAllBytesAsync(imagesPath, fileBytes);
+
+                            zimmer.ArrImages.Add(fileBytes);
+
+                            zimmer.ImageUrls.Add(uniqueFileName);
+                        }
                     }
                 }
 

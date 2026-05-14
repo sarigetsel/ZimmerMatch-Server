@@ -21,7 +21,7 @@ namespace Repository.Entities
         public decimal TotalPrice { get; set; }
         public string? SpecialRequests { get; set; }
         public BookingStatus Status { get; set; }
-        // Navigation properties
+
         [ForeignKey("UserId")]
         public User User { get; set; }
         [ForeignKey("ZimmerId")]
