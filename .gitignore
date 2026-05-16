@@ -586,4 +586,5 @@ FodyWeavers.xsd
 *.pem
 *.pfx
 secrets.json
-appsettings.Development.json                                                                 
+appsettings.Development.json  
+appsettings.json

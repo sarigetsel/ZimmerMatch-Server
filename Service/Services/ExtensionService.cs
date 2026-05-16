@@ -16,6 +16,7 @@ namespace Service.Services
     {
         public static IServiceCollection AddServices(this IServiceCollection services)
         {
+            services.AddHttpClient();
             services.AddRepository();
             services.AddScoped<IService<AvailabilityDto>, AvailabilityService>();
             services.AddScoped<IService<UserDto>,UserService>();
@@ -23,6 +24,7 @@ namespace Service.Services
             services.AddScoped<IZimmerService,ZimmerService>();
             services.AddScoped< IBookingService, BookingService>();
             services.AddScoped<IBookingRepository, BookingRepository>();
+            services.AddScoped<IChatService, ChatService>();
 
             return services;
         }
