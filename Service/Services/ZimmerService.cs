@@ -24,7 +24,6 @@ namespace Service.Services
             this.availabilityRepository = availabilityRepository;
             this.mapper = map;
         }
-
         public async Task<List<ZimmerDto>> SearchZimmersAsync(ZimmerSearchDto searchParams)
         {
             var allZimmers = await repository.GetAll();
@@ -66,17 +65,11 @@ namespace Service.Services
             {
                 if (int.TryParse(words[i], out int num))
                 {
-                    bool isRooms = (i + 1 < words.Length &&
-                        (words[i + 1].StartsWith("חדר")));
+                    bool isRooms = (i + 1 < words.Length && (words[i + 1].StartsWith("חדר") || words[i + 1].StartsWith("חדש")));
+                    bool isPrice = (i + 1 < words.Length && (words[i + 1].StartsWith("שקל") || words[i + 1].Contains("ש\"ח") || words[i + 1].StartsWith("מחיר")));
 
-                    bool isPrice = (i + 1 < words.Length &&
-                        (words[i + 1].StartsWith("שקל") || words[i + 1].Contains("ש\"ח")));
-
-                    bool min = (i - 1 >= 0 &&
-                        (words[i - 1].Contains("לפחות") || words[i - 1].Contains("מינימום")));
-
-                    bool max = (i - 1 >= 0 &&
-                        (words[i - 1].Contains("עד") || words[i - 1].Contains("מקסימום")));
+                    bool min = (i - 1 >= 0 && (words[i - 1].Contains("לפחות") || words[i - 1].Contains("מינימום") || words[i - 1].Contains("מעל")));
+                    bool max = (i - 1 >= 0 && (words[i - 1].Contains("עד") || words[i - 1].Contains("מקסימום") || words[i - 1].Contains("מתחת")));
 
                     if (isRooms)
                     {
@@ -91,31 +84,37 @@ namespace Service.Services
                         else if (max) maxPrice = num;
                         else maxPrice = num;
                     }
+
+                    bool isPeople = (i + 1 < words.Length && (words[i + 1].StartsWith("איש") || words[i + 1].StartsWith("אנש") || words[i + 1].StartsWith("נופש") || words[i + 1].StartsWith("אורח") || words[i + 1].StartsWith("מבוג")));
+                    if (isPeople)
+                    {
+                        minRooms = (int)Math.Ceiling((double)num / 4.0);
+                    }
                 }
             }
 
-            var filtered = baseFiltered.Where(z =>
-            {
-                if (minRooms.HasValue && z.NumRooms < minRooms) return false;
-                if (maxRooms.HasValue && z.NumRooms > maxRooms) return false;
-                if (minPrice.HasValue && z.PricePerNight < minPrice) return false;
-                if (maxPrice.HasValue && z.PricePerNight > maxPrice) return false;
-                return true;
-            }).ToList();
-
             var regions = new Dictionary<string, List<string>>
-            {
-                { "צפון", new List<string> { "צפת", "טבריה", "מירון", "חצור", "ראש פינה", "נהריה", "כרמיאל", "דלתון", "ספסופה", "חרמון","כרמל", "פרדס חנה", "ירכא","בצת", "רמת הגולן והכנרת" } },
-                { "דרום", new List<string> { "אילת", "באר שבע", "ערד", "מצפה רמון", "נתיבות", "אשקלון","ירוחם" } },
-                { "מרכז", new List<string> { "תל אביב", "נתניה", "הרצליה", "ירושלים", "בני ברק", "מודיעין עילית" } }
-            };
+    {
+        { "צפון", new List<string> { "צפת", "טבריה", "מירון", "חצור", "ראש פינה", "נהריה", "כרמיאל", "דלתון", "ספסופה", "חרמון","כרמל", "פרדס חנה", "ירכא","בצת", "רמת הגולן והכנרת", "גליל", "גולן", "עמקים", "קצרין", "מעלות" } },
+        { "דרום", new List<string> { "אילת", "באר שבע", "ערד", "מצפה רמון", "נתיבות", "אשקלון","ירוחם", "נגב", "אשדוד", "קרית גת", "שדרות" } },
+        { "מרכז", new List<string> { "תל אביב", "נתניה", "הרצליה", "ירושלים", "בני ברק", "מודיעין עילית", "גוש דן", "פתח תקוה", "ראשון לציון", "רחובות", "חולון", "רמת גן", "רעננה", "כפר סבא" } }
+    };
 
-            var scoredResults = filtered.Select(z =>
+            var scoredResults = baseFiltered.Select(z =>
             {
                 int score = 0;
                 string zName = (z.NameZimmer ?? "").ToLower();
                 string zCity = (z.City ?? "").ToLower();
                 string zDesc = (z.Description ?? "").ToLower();
+
+                if (minRooms.HasValue)
+                {
+                    if (z.NumRooms >= minRooms.Value) score += 40;
+                    else if (z.NumRooms >= minRooms.Value - 1) score += 10;
+                }
+                if (maxRooms.HasValue && z.NumRooms <= maxRooms.Value) score += 20;
+                if (minPrice.HasValue && z.PricePerNight >= minPrice.Value) score += 20;
+                if (maxPrice.HasValue && z.PricePerNight <= maxPrice.Value) score += 20;
 
                 foreach (var word in words.Where(w => w.Length > 2))
                 {
@@ -156,8 +155,8 @@ namespace Service.Services
 
                 foreach (var region in regions)
                 {
-                    if (searchText.Contains(region.Key) && region.Value.Any(c => zCity.Contains(c.ToLower())))
-                        score += 30;
+                    if ((searchText.Contains(region.Key) || IsFuzzyMatch(region.Key, searchText)) && region.Value.Any(c => zCity.Contains(c.ToLower()) || IsFuzzyMatch(c.ToLower(), zCity)))
+                        score += 50;
                 }
 
                 return new { Zimmer = z, Score = score };
@@ -166,6 +165,11 @@ namespace Service.Services
             .OrderByDescending(x => x.Score)
             .Select(x => x.Zimmer)
             .ToList();
+
+            if (!scoredResults.Any())
+            {
+                return mapper.Map<List<ZimmerDto>>(baseFiltered);
+            }
 
             return mapper.Map<List<ZimmerDto>>(scoredResults);
         }
@@ -189,8 +193,8 @@ namespace Service.Services
 
         private bool IsFuzzyMatch(string source, string target)
         {
-            var sourceWords = source.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            var targetWords = target.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var sourceWords = source.Split(new[] { ' ', ',', '.', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
+            var targetWords = target.Split(new[] { ' ', ',', '.', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
 
             foreach (var s in sourceWords)
             {
@@ -198,10 +202,20 @@ namespace Service.Services
                 {
                     int distance = CalculateLevenshteinDistance(s, t);
 
-                    if (
-                        (s.Length <= 4 && distance <= 1) ||
-                        (s.Length > 4 && distance <= 2)
-                    )
+                    if (s.Length <= 4 && distance <= 1)
+                    {
+                        return true;
+                    }
+                    else if (s.Length > 4 && s.Length <= 6 && distance <= 2)
+                    {
+                        return true;
+                    }
+                    else if (s.Length > 6 && distance <= 3)
+                    {
+                        return true;
+                    }
+
+                    if (t.Contains(s) || s.Contains(t))
                     {
                         return true;
                     }
