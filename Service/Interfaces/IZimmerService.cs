@@ -11,5 +11,6 @@ namespace Service.Interfaces
     {
         Task<List<ZimmerDto>> SearchZimmersAsync(ZimmerSearchDto searchParams);
         Task<List<string>> GetUniqueCitiesAsync();
+        Task<List<ZimmerDto>> GetSimilarZimmersAsync(int currentZimmerId);
     }
 }

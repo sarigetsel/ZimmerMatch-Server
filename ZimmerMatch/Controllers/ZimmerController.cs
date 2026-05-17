@@ -243,5 +243,18 @@ namespace ZimmerMatch.Controllers
 
             return Ok(cities);
         }
+        [HttpGet("similar/{id}")]
+        public async Task<IActionResult> GetSimilar(int id)
+        {
+            try
+            {
+                var results = await _service.GetSimilarZimmersAsync(id);
+                return Ok(results);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
     }
 }
