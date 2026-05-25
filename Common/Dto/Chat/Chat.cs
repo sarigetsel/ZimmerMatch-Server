@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Common.Dto;
 
 namespace Common.Dto.Chat
 {
@@ -10,6 +11,7 @@ namespace Common.Dto.Chat
     {
         public string Message { get; set; }
         public List<ChatMessage> History { get; set; } = new();
+        public ZimmerDto? ZimmerDetails { get; set; }
     }
 
     public class ChatMessage
