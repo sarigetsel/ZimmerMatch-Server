@@ -9,23 +9,23 @@ namespace Common.Enums
         [Flags]
         public enum Facility
         {
-            Pool = 1,               // בריכה
-            Parking = 2,            // חניה
-            Garden = 4,             // חצר
-            Wifi = 8,               // אינטרנט אלחוטי
-            Jacuzzi = 16,            // ג'קוזי
-            Accessible = 32,         // נגישות
-            AirConditioning = 64,    // מיזוג אוויר
-            BBQ = 128,                // עמדת על האש
-            Kitchen = 256,            // מטבח מאובזר
-            Heating = 512,            // חימום
-            Playground = 1024,         // משחקיה לילדים
-            Seaview = 2048,            // נוף לים (אם קיים)
-            PrivateParking = 4096,     // חניה פרטית
-            BreakfastIncluded = 8192,  // כולל ארוחת בוקר
-            OutdoorSeating = 16384,     // פינת ישיבה חיצונית
-            Laundry = 32768,             // מכונת כביסה
-            Sauna = 65536                // סאונה
+            Pool = 1,               
+            Parking = 2,           
+            Garden = 4,             
+            Wifi = 8,               
+            Jacuzzi = 16,            
+            Accessible = 32,         
+            AirConditioning = 64,    
+            BBQ = 128,                
+            Kitchen = 256,            
+            Heating = 512,            
+            Playground = 1024,         
+            Seaview = 2048,            
+            PrivateParking = 4096,     
+            BreakfastIncluded = 8192,  
+            OutdoorSeating = 16384,     
+            Laundry = 32768,             
+            Sauna = 65536                
         }
     
 }

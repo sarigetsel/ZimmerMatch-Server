@@ -17,17 +17,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.Limits.MaxRequestHeadersTotalSize = 1048576; // הגדלה ל-1MB
+    options.Limits.MaxRequestHeadersTotalSize = 1048576; 
 });
-
-// Add services to the container.
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
-    });
-
-
 
 
 builder.Services.AddControllers()
@@ -52,20 +43,22 @@ builder.Services.AddSwaggerGen(c =>
     });
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
-            {
-                {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference
-                        {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer"
-                        }
-                    },
-                    new string[] {}
-                }
-            });
+    {
+           {
+                 new OpenApiSecurityScheme
+                 {
+                     Reference = new OpenApiReference
+                     {
+                         Type = ReferenceType.SecurityScheme,
+                         Id = "Bearer"
+                     }
+                 },
+                 new string[] {}
+           }
+    });
 });
+
+
 // אימות
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(option =>

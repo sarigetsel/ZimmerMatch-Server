@@ -20,7 +20,6 @@ namespace ZimmerMatch.Controllers
             _availabilityService = availabilityService;
         }
 
-        // GET: api/Booking
         [HttpGet]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Get()
@@ -36,7 +35,6 @@ namespace ZimmerMatch.Controllers
             }
         }
 
-        // GET api/Booking/5
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
@@ -96,7 +94,6 @@ namespace ZimmerMatch.Controllers
             }
         }
 
-        // POST api/Booking
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] BookingDto booking)
         {
@@ -149,7 +146,6 @@ namespace ZimmerMatch.Controllers
             }
         }
 
-        // PUT api/Booking/5
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(int id, [FromBody] BookingDto booking)
         {
@@ -168,7 +164,6 @@ namespace ZimmerMatch.Controllers
             }
         }
 
-        // DELETE api/Booking/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

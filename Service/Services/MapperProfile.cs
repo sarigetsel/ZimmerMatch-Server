@@ -13,7 +13,7 @@ namespace Service.Services
 {
     public class MapperProfile : Profile
     {
-        string path = Directory.GetCurrentDirectory() + "\\images\\";
+        //string path = Directory.GetCurrentDirectory() + "\\images\\";
 
         public MapperProfile()
         {
@@ -22,10 +22,10 @@ namespace Service.Services
               .ForMember(dest => dest.ArrImages, o => o.MapFrom(src =>
                  (src.ImageUrls != null)
                 ? src.ImageUrls
-              .Select(fileName => Path.Combine(Directory.GetCurrentDirectory(), "images", fileName)) 
-              .Where(fullPath => File.Exists(fullPath))
-              .Select(fullPath => File.ReadAllBytes(fullPath))
-              .ToList()
+                .Select(fileName => Path.Combine(Directory.GetCurrentDirectory(), "images", fileName)) 
+                .Where(fullPath => File.Exists(fullPath))
+                .Select(fullPath => File.ReadAllBytes(fullPath))
+                .ToList()
                  : new List<byte[]>()));
 
 
@@ -66,12 +66,12 @@ namespace Service.Services
                   .ForMember(dest => dest.User, opt => opt.Ignore())   
                   .ForMember(dest => dest.Zimmer, opt => opt.Ignore());
         }
-        public byte[] myconvert(string url)
-        {
-            string path = Environment.CurrentDirectory + "\\Images\\" + url;
-            var arr = File.ReadAllBytes(path);
-            return arr;
-        }
+        //public byte[] myconvert(string url)
+        //{
+        //    string path = Environment.CurrentDirectory + "\\Images\\" + url;
+        //    var arr = File.ReadAllBytes(path);
+        //    return arr;
+        //}
         
     }
 

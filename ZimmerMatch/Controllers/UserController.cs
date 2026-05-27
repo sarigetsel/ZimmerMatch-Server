@@ -168,17 +168,19 @@ namespace ZimmerMatch.Controllers
                 new Claim(ClaimTypes.Role,u.Role.ToString()),
                 new Claim(ClaimTypes.NameIdentifier, u.Id.ToString())
             };
-            var token = new JwtSecurityToken(
+            var token = new JwtSecurityToken
+            (
                 _configuration["Jwt:Issuer"],
                 _configuration["Jwt:Audience"],
                 claims,
                 expires: DateTime.Now.AddMinutes(30),
-                signingCredentials: credentials);
+                signingCredentials: credentials
+            );
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
         private UserDto GetCurrentUser()
         {
-        var identity = HttpContext.User.Identity as ClaimsIdentity;
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
             if (identity == null) return null;
 
             return new UserDto()

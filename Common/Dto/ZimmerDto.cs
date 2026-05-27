@@ -19,9 +19,11 @@ namespace Common.Dto
         public int OwnerId { get; set; }
 
         [Required]
+        [StringLength(100)]
         public string NameZimmer { get; set; }
         public string Description { get; set; }
 
+        [Required]
         public string City { get; set; }
         public string Address { get; set; }
         [Range(-90, 90, ErrorMessage = "קו רוחב חייב להיות בין -90 ל-90")]
@@ -29,18 +31,20 @@ namespace Common.Dto
         [Range(-180, 180, ErrorMessage = "קו אורך חייב להיות בין -180 ל-180")]
         public double Longitude { get; set; }
 
+        [Range(1, int.MaxValue, ErrorMessage = "מספר חדרים חייב להיות לפחות 1")]
         public int NumRooms { get; set; }
+
+        [Range(0, double.MaxValue, ErrorMessage = "מחיר לא יכול להיות שלילי")]
         public decimal PricePerNight { get; set; }
 
         public DateTime CreatedAt { get; set; }
         
         public Facility Facilities { get; set; }
         public UserDto? Owner { get; set; }
-        public List<string> ImageUrls { get; set; } = new List<string>();
-
         public List<IFormFile>? ImageFiles { get; set; } = new List<IFormFile>();
 
         public List<byte[]>? ArrImages { get; set; } = new List<byte[]>();
+        public List<string> ImageUrls { get; set; } = new List<string>();
 
     }
 

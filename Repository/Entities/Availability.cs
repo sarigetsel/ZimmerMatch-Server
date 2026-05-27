@@ -8,7 +8,7 @@ namespace Repository.Entities
         public int ZimmerId { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndTime { get; set; }
-        public bool IsBooked { get; set; } //האם התקופה תפוסה
+        public bool IsBooked { get; set; } 
 
         [ForeignKey("ZimmerId")]
         public Zimmer Zimmers{ get; set; }

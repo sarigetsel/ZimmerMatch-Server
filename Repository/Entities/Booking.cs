@@ -24,6 +24,7 @@ namespace Repository.Entities
 
         [ForeignKey("UserId")]
         public User User { get; set; }
+
         [ForeignKey("ZimmerId")]
         public Zimmer Zimmer { get; set; }
     }

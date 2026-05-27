@@ -14,9 +14,6 @@ namespace Common.Dto
         public string? City { get; set; }
         public int? NumOfRooms { get; set; }
 
-        //public DateTime? FromDate { get; set; }
-        //public DateTime? ToDate { get; set; }
-
         public bool? HasPool { get; set; }
         public bool? HasJacuzzi { get; set; }
         public bool? HasSauna { get; set; }
