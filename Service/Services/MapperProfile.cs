@@ -13,8 +13,6 @@ namespace Service.Services
 {
     public class MapperProfile : Profile
     {
-        //string path = Directory.GetCurrentDirectory() + "\\images\\";
-
         public MapperProfile()
         {
 
@@ -66,12 +64,7 @@ namespace Service.Services
                   .ForMember(dest => dest.User, opt => opt.Ignore())   
                   .ForMember(dest => dest.Zimmer, opt => opt.Ignore());
         }
-        //public byte[] myconvert(string url)
-        //{
-        //    string path = Environment.CurrentDirectory + "\\Images\\" + url;
-        //    var arr = File.ReadAllBytes(path);
-        //    return arr;
-        //}
+        
         
     }
 
